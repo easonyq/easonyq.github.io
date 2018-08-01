@@ -1,5 +1,7 @@
-![mashroom](http://boscdn.bpc.baidu.com/assets/mip/codelab/shell/mashroom.jpg)
+<p align='center'>
+  <img width="150" src="http://boscdn.bpc.baidu.com/assets/mip/codelab/shell/mashroom.jpg" title='MIP' alt='MIP'>
+</p>
 
-===
+----
 
-记录一些学习的笔记
+一些学习的记录
