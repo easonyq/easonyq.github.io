@@ -257,29 +257,127 @@ class A {
 
 那么 `super.p()` 是访问不到的。
 
-最后注意
+```javascript
+class A {
+  constructor() {
+    this.x = 1;
+  }
+  print() {
+    console.log(this.x);
+  }
+}
 
-1. 两种 `super` 在执行过程中，`this` 是指向子类而非父类。因此如果在父类中使用了类似 `this.xxx = xxx`，这里其实是调用了子类的 `xxx` 而非父类。
-2. `super` 在子类中使用时，如果写入 `super.xxx = xxx`，是写入子类，等价于 `this.xxx = xxx`；如果读取 `super.xxx`，是读取父类，等价于 `Parent.prototype.xxx`。
+class B extends A {
+  constructor() {
+    super();
+    this.x = 2;
+  }
+  m() {
+    super.print();
+  }
+}
 
-    ```javascript
-    class A {
-      constructor() {
-        this.x = 1;
-      }
-    }
 
-    class B extends A {
-      constructor() {
-        super();
-        this.x = 2;
-        super.x = 3; // 等价于 this.x = 3;
-        console.log(super.x); // undefined
-        console.log(this.x); // 3
-      }
-    }
+let b = new B();
+b.m() // 2
+```
 
-    let b = new B();
-    ```
+在把 `super` 当做对象，调用 `super.xxx` 方法或者属性时：
+1. 执行的是父类的 __原型链__ 上面的方法或者属性。因此如上面写法，`super.x` 获取到的是 `undefined`，因为父类的 `x` 是实例的属性而非原型链的属性。
 
-TODO
+    因此，如果写成 `A.prototype.x = 1` 就可以获取到了。
+
+2. 执行时，`this` 是指向子类的。因此执行 `super.print()` 时，打印的 `this.x` 是子类的 `x`，所以打印 `2` 而不是 `1`。
+3. 如果使用 `super` 进行赋值（估计只有面试题这么做）等价于 `this`。如 `super.x = 3` 等价于 `this.x = 3`。
+4. 如果在静态方法中调用 `super.xxx`，指向的是父类。因此如果调用方法，那就会去找父类的静态方法。在这个过程中如果使用了 `this`，它指向子类。所以 `this.xxx` 就会访问子类的静态变量或者方法。
+
+## __proto__
+
+### 类
+
+```javascript
+class A {
+}
+
+class B extends A {
+}
+
+B.__proto__ === A // true
+B.prototype.__proto__ === A.prototype // true
+```
+
+1. 子类的 `__proto__` 属性，表示构造函数的继承，总是指向父类。
+
+2. 子类 `prototype` 属性的 `__proto__` 属性，表示方法的继承，总是指向父类的 `prototype` 属性。
+
+实际上继承的内部也是通过设置 `__proto__` 属性来实现的。
+
+### 实例
+
+子类实例的__proto__属性的__proto__属性，指向父类实例的__proto__属性。
+
+```javascript
+let parent = new Parent();
+let child = new Child();
+
+child.__proto__.__proto__ === parent.__proto__;
+```
+
+## 特殊的继承关系
+
+### 继承 `Object`
+
+```javascript
+class A extends Object {
+}
+
+A.__proto__ === Object // true
+A.prototype.__proto__ === Object.prototype // true
+```
+
+### 不继承
+
+```javascript
+class A {
+}
+
+A.__proto__ === Function.prototype // true
+A.prototype.__proto__ === Object.prototype // true
+```
+
+A 不继承任何父类，他就是个普通函数，所以继承 `Function.prototype`。
+
+但调用 `new A()` 之后返回的是一个空对象，因此 A 的原型链继承对象的原型链。
+
+### 继承 `null`
+
+```javascript
+class A extends null {
+}
+
+A.__proto__ === Function.prototype // true
+A.prototype.__proto__ === undefined // true
+```
+
+A 的情况和第二种一样，是个普通函数，继承 `Function.prototype`。
+
+而 A 的实例实质上执行了 `return Object.create(null)`， 因此也没有父类。
+
+### 继承源生类
+
+源生类就是如 Object, Array, Boolean, Number, String 之类的内置的类。ES6 也可以继承这些类，获得他们相同的行为和方法。
+
+```javascript
+class MyArray extends Array {
+  constructor(...args) {
+    super(...args);
+  }
+}
+
+var arr = new MyArray();
+arr[0] = 12;
+arr.length // 1
+
+arr.length = 0;
+arr[0] // undefined
+```

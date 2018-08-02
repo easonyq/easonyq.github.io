@@ -4,7 +4,7 @@
 
 * 简单来说就是在 HTML 中使用自定义标签
 * **组件提供了HTML、CSS、JavaScript封装的方法，实现了与同一页面上其他代码的隔离**
-* 包含4中技术： Template, Custom Element, Shadow DOM, HTML Import。最重要的是 Custom Element 和 Shadow DOM。
+* 包含4种技术： Template, Custom Element, Shadow DOM, HTML Import。最重要的是 Custom Element 和 Shadow DOM。
 
 ## Custom Element
 
