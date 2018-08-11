@@ -7,7 +7,7 @@ webpack 2.0 开始引入 tree shaking 技术。在介绍技术之前，先介绍
 
 * DCE
     Dead Code Elimination，在保持代码运行结果不变的前提下，去除无用的代码。这样的好处是：
-    
+
     * 减少程序体积
     * 减少程序执行时间
     * 便于将来对程序架构进行优化
@@ -18,6 +18,8 @@ webpack 2.0 开始引入 tree shaking 技术。在介绍技术之前，先介绍
     * 导致 dead variable 的代码（写入变量之后不再读取的代码）
 
 tree shaking 是 DCE 的一种方式，它可以在打包时忽略没有用到的代码。
+
+![tree shaking](https://user-gold-cdn.xitu.io/2018/1/4/160bfdcf2a31ce4a?imageslim)
 
 ## 内部机制
 
@@ -67,38 +69,38 @@ document.body.appendChild(element);
 ```javascript
 /* 0 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
- 
+
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return sayHello; });
 /* unused harmony export sayBye */
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return sayHi; });
- 
- 
+
+
 var sayHello = function sayHello(name) {
   return "Hello " + name + "!";
 };
 var sayBye = function sayBye(name) {
   return "Bye " + name + "!";
 };
- 
+
 var sayHi = function sayHi(name) {
   return "Hi " + name + "!";
 };
- 
+
 /***/ }),
 /* 1 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
- 
+
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__module__ = __webpack_require__(0);
- 
- 
- 
+
+
+
 var element = document.createElement('h1');
 element.innerHTML = Object(__WEBPACK_IMPORTED_MODULE_0__module__["a" /* sayHello */])('World') + Object(__WEBPACK_IMPORTED_MODULE_0__module__["b" /* sayHi */])(' to meet you');
 document.body.appendChild(element);
- 
+
 /***/ })
 ```
 
@@ -138,3 +140,18 @@ export default A
 例如想象 A 是 Array， `let arr = new Array(); arr.hello()` 并没有 `import Array` （因为是内置的），且编译器也无法区分 A 不是内置的，而 Array 是内置的。
 因此最保险的做法就是保留这个 A。
 
+
+总结
+1. 使用 ES6 模块语法编写代码
+2. 工具类函数尽量以单独的形式输出，不要集中成一个对象或者类
+3. 声明 sideEffects
+4. 自己在重构代码时也要注意副作用
+
+ModuleConcatenationPlugin
+https://zhuanlan.zhihu.com/p/27980441
+
+sideEffects
+https://github.com/webpack/webpack/tree/next/examples/side-effects
+
+webpack 官方文档
+https://webpack.docschina.org/guides/tree-shaking/
