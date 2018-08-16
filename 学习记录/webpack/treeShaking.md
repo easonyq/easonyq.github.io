@@ -1,5 +1,7 @@
 # treeShaking
 
+*在 github 上直接观看 markdown 会把图片转存到缓存中，github 转存后的图片清晰度很有问题，因此如果图片看不清，可以移步知乎上的[相同文章](https://zhuanlan.zhihu.com/p/41997654)*
+
 webpack 2.0 开始引入 tree shaking 技术。在介绍技术之前，先介绍几个相关概念：
 
 * AST
