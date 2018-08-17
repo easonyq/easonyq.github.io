@@ -203,3 +203,7 @@ var _ref = _asyncToGenerator3(function* (arg1, arg2) {
 `babel-plugin-transform-runtime` __不支持__ 实例方法 (例如 `[1,2,3].includes(1)`)
 
 此外补充一点，把 helpers 抽离并统一起来，避免重复代码的工作还有一个 plugin 也能做，叫做 `babel-plugin-external-helpers`。但因为我们使用的 `transform-runtime` 已经包含了这个功能，因此不必重复使用。而且 babel 的作者们也已经开始讨论这两个插件过于类似，正在讨论在 babel 7 中把 `external-helpers` 删除，讨论在 [issue#5699](https://github.com/babel/babel/issues/5699) 中。
+
+### babel-loader
+
+TODO
