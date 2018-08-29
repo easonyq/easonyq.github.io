@@ -315,7 +315,7 @@ babel-loader | 使用 webpack 时作为一个 loader 在代码混淆之前进行
 
 ## Babel 7.x
 
-最近 babel 发布了 7.0。因为上文都是针对 6.x 编写的，所以我们关注一下 7.0 带来的变化(核心机制方面没有变化，插件，preset，解析转译生成这些都没有变化)
+最近 babel 发布了 7.0。因为上面部分都是针对 6.x 编写的，所以我们关注一下 7.0 带来的变化(核心机制方面没有变化，插件，preset，解析转译生成这些都没有变化)
 
 我只挑选一些和开发者关系比较大的列在这里，省略的多数是针对某一个 plugin 的改动。完整的列表可以参考[官网](https://babeljs.io/docs/en/v7-migration)。
 
@@ -323,9 +323,9 @@ babel-loader | 使用 webpack 时作为一个 loader 在代码混淆之前进行
 
 淘汰 es201x 的目的是把选择环境的工作交给 env 自动进行，而不需要开发者投入精力。__凡是使用 es201x 的开发者，都应当使用 env 进行替换__。但这里的淘汰 (原文 deprecated) 并不是删除，只是不推荐使用了，不好说 babel 8 就真的删了。
 
-与之相比，stage-x 就没那么好运了，它们直接被删了。这是因为 babel 团队认为为这些 “不稳定的草案” 花费精力去更新 preset 相当浪费。但 stage-x 删除了，它包含的插件并没有删除(但是被更名了，可以看下面一节)，我们依然可以显式地声明这些插件来获得等价的效果。[完整列表](https://github.com/babel/babel/tree/master/packages/babel-preset-stage-0#babelpreset-stage-0)
+与之相比，stage-x 就没那么好运了，它们直接被删了。这是因为 babel 团队认为为这些 “不稳定的草案” 花费精力去更新 preset 相当浪费。stage-x 虽然删除了，但它包含的插件并没有删除(只是被更名了，可以看下面一节)，我们依然可以显式地声明这些插件来获得等价的效果。[完整列表](https://github.com/babel/babel/tree/master/packages/babel-preset-stage-0#babelpreset-stage-0)
 
-为了减少开发者替换配置文件的机械工作，babel 开发了一款 `babel-upgrade` 的工具，[github](https://github.com/babel/babel-upgrade)，它会检测 babel 配置中的 stage-x 并且替换成对应的 plugins。除此之外它还有其他功能，我们一会儿再详细看。(总之目的就是让你更加平滑地迁移到 babel@7.x)
+为了减少开发者替换配置文件的机械工作，babel 开发了一款 `babel-upgrade` 的[工具](https://github.com/babel/babel-upgrade)，它会检测 babel 配置中的 stage-x 并且替换成对应的 plugins。除此之外它还有其他功能，我们一会儿再详细看。(总之目的就是让你更加平滑地迁移到 babel 7)
 
 ### npm package 名称的变化 (重点)
 
@@ -348,31 +348,31 @@ babel-loader | 使用 webpack 时作为一个 loader 在代码混淆之前进行
 
 顺带提一句，上面提过的 babel 解析语法的内核 `babylon` 现在重命名为 `@babel/parser`，看起来是被收编了。
 
-上文提过的 stage-x 被删除了，但它包含的插件虽然保留，但也被重命名了。babel 团队希望更明显地区分已经位于规范中的插件(如 es2015 的 `babel-plugin-transform-arrow-functions`)和仅仅位于草案中的插件(如 stage-0 的 `@babel/plugin-proposal-function-bind`)。方式就是在名字中增加 `proposal`，所有包含在 stage-x 的插件都带上了这个前缀，语法插件不在其列。
+上文提过的 stage-x 被删除了，它包含的插件虽然保留，但也被重命名了。babel 团队希望更明显地区分已经位于规范中的插件 (如 es2015 的 `babel-plugin-transform-arrow-functions`) 和仅仅位于草案中的插件 (如 stage-0 的 `@babel/plugin-proposal-function-bind`)。方式就是在名字中增加 `proposal`，所有包含在 stage-x 的转译插件都使用了这个前缀，语法插件不在其列。
 
-最后，如果插件名称中包含了规范名称 (`-es2015-`, `-es3-` 之类的)，一律删除。例如 `babel-plugin-transform-es2015-classes` 变成了 `@babel/plugin-transform-classes`。(这个插件我自己也没单独用过，惭愧)
+最后，如果插件名称中包含了规范名称 (`-es2015-`, `-es3-` 之类的)，一律删除。例如 `babel-plugin-transform-es2015-classes` 变成了 `@babel/plugin-transform-classes`。(这个插件我自己没有单独用过，惭愧)
 
 ### 不再支持低版本 node
 
-babel 7.0 开始不再支持 nodejs 0.10, 0.12, 4, 5 这四个版本，相当于要求 nodejs >= 6(当前 nodejs LTS 是 8，要求也不算太过分吧)。
+babel 7.0 开始不再支持 nodejs 0.10, 0.12, 4, 5 这四个版本，相当于要求 nodejs >= 6 (当前 nodejs LTS 是 8，要求也不算太过分吧)。
 
 这里的不再支持，指的是在这些低版本 node 环境中不能使用 babel 转译代码，但 babel 转译后的代码依然能在这些环境上运行，这点不要混淆。
 
 ### only 和 ignore 匹配规则的变化
 
-在 babel 6 时，`ignore` 选项如果包含 `*.foo.js`，实际上的含义(转化为 glob )是 `./**/*.foo.js`，也就是当前目录 __包括子目录__ 的所有 `foo.js` 结尾的文件。这可能和开发者常规的认识有悖。
+在 babel 6 时，`ignore` 选项如果包含 `*.foo.js`，实际上的含义 (转化为 glob) 是 `./**/*.foo.js`，也就是当前目录 __包括子目录__ 的所有 `foo.js` 结尾的文件。这可能和开发者常规的认识有悖。
 
 于是在 babel 7，相同的表达式 `*.foo.js` 只作用于当前目录，不作用于子目录。如果依然想作用于子目录的，就要按照 glob 的完整规范书写为 `./**/*.foo.js` 才可以。`only` 也是相同。
 
 这个规则变化只作用于通配符，不作用于路径。所以 `node_modules` 依然包含所有它的子目录，而不单单只有一层。(否则全世界开发者都要爆炸)
 
-### @babel/node 从 @babel/cli 独立了
+### @babel/node 从 @babel/cli 中独立了
 
 和 babel 6 不同，如果要使用 `@babel/node`，就必须单独安装，并添加到依赖中。
 
 ### babel-upgrade
 
-在提到删除 stage-x 时候提过这个[工具]((https://github.com/babel/babel-upgrade)，它的目的是帮助用户自动化地从 babel 6 升级到 7。
+在提到删除 stage-x 时候提过这个[工具](https://github.com/babel/babel-upgrade)，它的目的是帮助用户自动化地从 babel 6 升级到 7。
 
 这款升级工具的功能包括：(这里并不列出完整列表，只列出比较重要和常用的内容)
 
