@@ -1,8 +1,8 @@
-# 一口气了解什么是 babel
+# 一口（很长的）气了解 babel
 
 最近几年，如果你是一名前端开发者，如果你没有使用甚至听说过 babel，可能会被当做穿越者吧？
 
-那当我们谈到 babel，我们在谈什么？
+说到 babel，一连串名词会蹦出来：
 
 * babel-cli
 * babel-core
@@ -13,7 +13,7 @@
 
 这些都是 babel 吗？他们分别是做什么的？有区别吗？
 
-## babel 到底做了什么？
+## babel 到底做了什么？怎么做的？
 
 简单来说把 JavaScript 中 es2015/2016/2017/2046 的部分转化为 es5，让低端浏览器能够认识并执行。本文以 babel 6.x 为基准进行讨论，最近 babel 出了 7.x。
 
@@ -21,21 +21,23 @@
 
 此外如果你对 es5/es2015 等等也不了解的话，那你可能真的需要先补补课了。
 
-## 使用方法
+### 使用方法
 
-总共存在 3 种方式：
+总共存在三种方式：
 
 1. 使用单体文件 (standalone script)
 2. 命令行 (cli)
 3. 构建工具的插件 (webpack 的 babel-loader, rollup 的 rollup-plugin-babel)。
 
-常规情况是使用最后一种，因此我们就说最后一种。
+其中后面两种比较常见。第二种多见于 package.json 中的 `scripts` 段落中的某条命令；第三种就直接继承到构建工具中。
 
-## 运行方式和插件
+但这三种方式只是入口不同而已，调用的 babel 内核，处理方式都是一样的，所以我们不用过于纠结入口。
+
+### 运行方式和插件
 
 babel 总共分为三个阶段：解析，转换，生成。
 
-babel 本身不具有任何转化功能，它把转化的功能都分解到一个个 plugin 里面。因此当我们不配置任何插件时，经过 babel 的代码和输入保持一致。
+babel 本身不具有任何转化功能，它把转化的功能都分解到一个个 plugin 里面。因此当我们不配置任何插件时，经过 babel 的代码和输入是相同的。
 
 插件总共分为两种：
 
@@ -51,7 +53,7 @@ babel 本身不具有任何转化功能，它把转化的功能都分解到一�
 
   同一类语法可能同时存在语法插件版本和转译插件版本。__如果我们使用了转译插件，就不用再使用语法插件了。__
 
-## 配置文件
+### 配置文件
 
 既然插件是 babel 的根本，那如何使用呢？总共分为 2 个步骤：
 
@@ -60,11 +62,11 @@ babel 本身不具有任何转化功能，它把转化的功能都分解到一�
 
 具体书写格式就不详述了。
 
-## preset
+### preset
 
 比如 es2015 是一套规范，包含大概十几二十个转译插件。如果每次要开发者一个个添加并安装，配置文件很长不说，`npm install` 的时间也会很长，更不谈我们可能还要同时使用 es2016 呢。
 
-为了解决这个问题，babel 还提供了一组插件的集合，因为常用，所以不必重复定义 & 安装。（单点和套餐的差别，只不过这里的套餐只是方便，并没有打折）
+为了解决这个问题，babel 还提供了一组插件的集合，因为常用，所以不必重复定义 & 安装。（单点和套餐的差别，套餐剩下了巨多的时间和配置的精力）
 
 preset 分为以下几种：
 
@@ -88,11 +90,11 @@ preset 分为以下几种：
 
 3. es201x, latest
 
-    这些是已经纳入到标准规范的语法。例如 es2015 包含 `arrow-functions`，es2017 包含 `syntax-trailing-function-commas`。但因为 env 的出现，使得 es2016 和 es2017 都已经废弃。所以我们经常可以看到 es2015 出现，但极少看到其他两个。
+    这些是已经纳入到标准规范的语法。例如 es2015 包含 `arrow-functions`，es2017 包含 `syntax-trailing-function-commas`。但因为 env 的出现，使得 es2016 和 es2017 都已经废弃。所以我们经常可以看到 es2015 被单独列出来，但极少看到其他两个。
 
-    latest 是 env 的雏形，它是一个每年更新的 preset，目的是包含所有 es201x。但也是因为 env 的出现，已经废弃。
+    latest 是 env 的雏形，它是一个每年更新的 preset，目的是包含所有 es201x。但也是因为更加灵活的 env 的出现，已经废弃。
 
-## 执行顺序
+### 执行顺序
 
 很简单的几条原则：
 
@@ -102,26 +104,36 @@ preset 分为以下几种：
 
 preset 的逆向顺序主要是为了保证向后兼容，因为大多数用户的编写顺序是 `['es2015', 'stage-0']`。这样必须先执行 `stage-0` 才能确保 babel 不报错。因此我们编排 preset 的时候，也要注意顺序，__只要按照规范的时间顺序列出即可。__
 
-## 配置属性
+### 插件和 preset 的配置项
 
-preset 和 plugin 都可以通过把名字和配置项放在一个数组中来实现每个单项的配置。例如我们最熟悉的 env 就是这样。
+简略情况下，插件和 preset 只要列出字符串格式的名字即可。但如果某个 preset 或者插件需要一些配置项（或者说参数），就需要把自己先变成数组。第一个元素依然是字符串，表示自己的名字；第二个元素是一个对象，即配置对象。
 
-```
-presets: [
-    ['env', {
-        module: false
-    }],
-    'stage-2'
+最需要配置的当属 env，如下：
+
+```json
+"presets": [
+    // 带了配置项，自己变成数组
+    [
+        // 第一个元素依然是名字
+        "env",
+        // 第二个元素是对象，列出配置项
+        {
+          "module": false
+        }
+    ],
+
+    // 不带配置项，直接列出名字
+    "stage-2"
 ]
 ```
 
-## env
+### env (重点)
 
-因为 env 最为常用，因此单独拿出来讲一下。
-
-如果不写任何配置项，env 等价于 latest，也等价于 es2015 + es2016 + es2017 三个相加（不包含 stage-x 中的插件）。env 包含的插件列表维护在[这里](https://github.com/babel/babel-preset-env/blob/master/data/plugin-features.js)
+因为 env 最为常用也最重要，所以我们有必要重点关注。
 
 env 的核心目的是通过配置得知目标环境的特点，然后只做必要的转换。例如目标浏览器支持 es2015，那么 es2015 这个 preset 其实是不需要的，于是代码就可以小一点（一般转化后的代码总是更长），构建时间也可以缩短一些。
+
+如果不写任何配置项，env 等价于 latest，也等价于 es2015 + es2016 + es2017 三个相加（不包含 stage-x 中的插件）。env 包含的插件列表维护在[这里](https://github.com/babel/babel-preset-env/blob/master/data/plugin-features.js)
 
 下面列出几种比较常用的配置方法：
 
@@ -157,19 +169,31 @@ env 的核心目的是通过配置得知目标环境的特点，然后只做必�
 
 ## 其他配套工具
 
-除了 babel 本身，我们接触 babel 还会碰到很多 babel 开头的名词。其实他们各不相同，但又广泛使用。我们需要逐个了解一下。
+以上讨论了 babel 的核心处理机制和配置方法等，不论任何入口调用 babel 都走这一套。但文章开头提的那一堆 `babel-*` 还是让人一头雾水。实际上这些 `babel-*` 大多是不同的入口（方式）来使用 babel，下面来简单介绍一下。
+
+### babel-cli
+
+顾名思义，cli 就是命令行工具。安装了 `babel-cli` 就能够在命令行中使用 `babel` 命令来编译文件。
+
+在开发 npm package 中时常会使用如下模式：
+
+* 把 `babel-cli` 安装为 `devDependencies`
+* 在 package.json 中添加 `scripts` (更常见的是 `prepublish`)，使用 `babel` 命令编译文件
+* `npm publish`
+
+这样可以使用较新规范的 JS 语法编写，但又能支持旧版环境。此外因为项目可能不太大，用不到构建工具 (webpack or rollup)，于是在发布之前用 `babel-cli` 进行处理。
 
 ### babel-node
 
 `babel-node` 是 `babel-cli` 的一部分，它不需要单独安装。
 
-它的作用是在 node 环境中，直接运行 ES6 的代码，而不需要额外进行转码。例如我们有一个 js 文件以 ES6 的语法进行编写（如使用了箭头函数）。我们可以直接使用 `babel-node es6.js` 进行执行，而不用再进行转码了。
+它的作用是在 node 环境中，直接运行 es2015 的代码，而不需要额外进行转码。例如我们有一个 js 文件以 es2015 的语法进行编写（如使用了箭头函数）。我们可以直接使用 `babel-node es2015.js` 进行执行，而不用再进行转码了。
 
-`babel-node` = `babel-polyfill` + `babel-register`。那这两位又是谁呢？
+可以说：`babel-node` = `babel-polyfill` + `babel-register`。那这两位又是谁呢？
 
 ### babel-register
 
-babel-register 模块改写 `require` 命令，为它加上一个钩子。此后，每当使用 `require` 加载 `.js`、`.jsx`、`.es` 和 `.es6` 后缀名的文件，就会先用 Babel 进行转码。
+babel-register 模块改写 `require` 命令，为它加上一个钩子。此后，每当使用 `require` 加载 `.js`、`.jsx`、`.es` 和 `.es6` 后缀名的文件，就会先用 babel 进行转码。
 
 使用时，必须首先加载 `require('babel-register')`。
 
@@ -179,21 +203,21 @@ babel-register 模块改写 `require` 命令，为它加上一个钩子。此后
 
 ### babel-polyfill
 
-Babel 默认只转换 js 语法，而不转换新的 API，比如 Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如 `Object.assign`）都不会转码。
+babel 默认只转换 js 语法，而不转换新的 API，比如 Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如 `Object.assign`）都不会转码。
 
-举例来说，ES6 在 Array 对象上新增了 `Array.from` 方法。Babel 就不会转码这个方法。如果想让这个方法运行，必须使用 `babel-polyfill`。(内部集成了 `core-js` 和 `regenerator`)
+举例来说，es2015 在 Array 对象上新增了 `Array.from` 方法。babel 就不会转码这个方法。如果想让这个方法运行，必须使用 `babel-polyfill`。(内部集成了 `core-js` 和 `regenerator`)
 
 使用时，在所有代码运行之前增加 `require('babel-polyfill')`。或者在 `webpack.config.js` 中将 `babel-polyfill` 作为第一个 entry。因此必须把 `babel-polyfill` 作为 `dependencies` 而不是 `devDependencies`
 
 `babel-polyfill` 主要有两个缺点：
 
-1. 使用 `babel-polyfill` 会导致打出来的包非常大，因为 `babel-polyfill` 是一个整体，把所有方法都加到原型链上。比如我们只使用了 `Array.from`，但它把 `Object.defineProperty` 也给加上了，这就是一种浪费了。这个问题可以通过单独使用 core-js 的某个类库来解决，core-js 都是分开的。
+1. 使用 `babel-polyfill` 会导致打出来的包非常大，因为 `babel-polyfill` 是一个整体，把所有方法都加到原型链上。比如我们只使用了 `Array.from`，但它把 `Object.defineProperty` 也给加上了，这就是一种浪费了。这个问题可以通过单独使用 `core-js` 的某个类库来解决，`core-js` 都是分开的。
 
 2. `babel-polyfill` 会污染全局变量，给很多类的原型链上都作了修改，如果我们开发的也是一个类库供其他开发者使用，这种情况就会变得非常不可控。
 
 因此在实际使用中，如果我们无法忍受这两个缺点（尤其是第二个），通常我们会倾向于使用 `babel-plugin-transform-runtime`。
 
-但如果代码中包含高版本 js 中类型的实例方法 (例如 `[1,2,3].includes(1)`)，这还是要使用 polyfill
+但如果代码中包含高版本 js 中类型的实例方法 (例如 `[1,2,3].includes(1)`)，这还是要使用 polyfill。
 
 ### babel-runtime 和 babel-plugin-transform-runtime (重点)
 
@@ -234,7 +258,7 @@ var _ref = _asyncToGenerator3(function* (arg1, arg2) {
 
 再说 `babel-runtime`，它内部集成了
 
-1. `core-js `: 转换一些内置类 (`Promise`, `Symbols`等等) 和静态方法 (`Array.from` 等)。绝大部分转换是这里做的。自动引入。
+1. `core-js`: 转换一些内置类 (`Promise`, `Symbols`等等) 和静态方法 (`Array.from` 等)。绝大部分转换是这里做的。自动引入。
 
 2. `regenerator`: 作为 `core-js` 的拾遗补漏，主要是 `generator/yield` 和 `async/await` 两组的支持。当代码中有使用 `generators/async` 时自动引入。
 
@@ -246,4 +270,45 @@ var _ref = _asyncToGenerator3(function* (arg1, arg2) {
 
 ### babel-loader
 
-TODO
+前面提过 babel 的三种使用方法，并已经介绍过了 `babel-cli`。但一些大型的项目都会有构建工具 (如 webpack 或 rollup) 来进行代码构建和压缩 (uglify)。理论上来说，我们也可以对压缩后的代码进行 babel 处理，但那会非常慢。因此如果在 uglify 之前就加入 babel 处理，岂不完美？
+
+所以就有了 babel 插入到构建工具内部这样的需求。以(我还算熟悉的) webpack 为例，webpack 有 loader 的概念，因此就出现了 `babel-loader`。
+
+和 `babel-cli` 一样，`babel-loader` 也会读取 .babelrc 或者 package.json 中的 `babel` 段作为自己的配置，之后的内核处理也是相同。唯一比 `babel-cli` 复杂的是，它需要和 webpack 交互，因此需要在 webpack 这边进行配置。比较常见的如下：
+
+```javascript
+module: {
+  rules: [
+    {
+      test: /\.js$/,
+      exclude: /(node_modules|bower_components)/,
+      loader: 'babel-loader'
+    }
+  ]
+}
+```
+
+如果想在这里传入 babel 的配置项，也可以把改成：
+
+```javascript
+// loader: 'babel-loader' 改成如下：
+use: {
+  loader: 'babel-loader',
+  options: {
+    // 配置项在这里
+  }
+}
+```
+
+这里的配置项优先级是最高的。但我认为放到单独的配置文件中更加清晰合理，可读性强一些。
+
+### 小结一下
+
+名称 | 作用 | 备注
+---- | --- | ---
+babel-cli | 允许命令行使用 babel 命令转译文件 |
+babel-node |  允许命令行使用 babel-node 直接转译+执行 node 文件 | 随 `babel-cli` 一同安装 <br> `babel-node` = `babel-polyfill` + `babel-register`
+babel-register | 改写 `require` 命令，为其加载的文件进行转码，不对当前文件转码 | 只适用于开发环境
+babel-polyfill | 为所有 API 增加兼容方法 | 需要在所有代码之前 `require`，且体积比较大
+babel-plugin-transform-runtime & babel-runtime | 把帮助类方法从每次使用前定义改为统一 `require`，精简代码 | `babel-runtime` 需要安装为依赖，而不是开发依赖
+babel-loader | 使用 webpack 时作为一个 loader 在代码混淆之前进行代码转换 |
