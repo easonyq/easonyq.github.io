@@ -110,7 +110,7 @@ preset 的逆向顺序主要是为了保证向后兼容，因为大多数用户�
 
 最需要配置的当属 env，如下：
 
-```json
+```javascript
 "presets": [
     // 带了配置项，自己变成数组
     [
@@ -178,10 +178,10 @@ env 的核心目的是通过配置得知目标环境的特点，然后只做必�
 在开发 npm package 中时常会使用如下模式：
 
 * 把 `babel-cli` 安装为 `devDependencies`
-* 在 package.json 中添加 `scripts` (更常见的是 `prepublish`)，使用 `babel` 命令编译文件
+* 在 package.json 中添加 `scripts` (比如 `prepublish`)，使用 `babel` 命令编译文件
 * `npm publish`
 
-这样可以使用较新规范的 JS 语法编写，但又能支持旧版环境。此外因为项目可能不太大，用不到构建工具 (webpack or rollup)，于是在发布之前用 `babel-cli` 进行处理。
+这样既可以使用较新规范的 JS 语法编写源码，同时又能支持旧版环境。因为项目可能不太大，用不到构建工具 (webpack 或者 rollup)，于是在发布之前用 `babel-cli` 进行处理。
 
 ### babel-node
 
@@ -270,7 +270,7 @@ var _ref = _asyncToGenerator3(function* (arg1, arg2) {
 
 ### babel-loader
 
-前面提过 babel 的三种使用方法，并已经介绍过了 `babel-cli`。但一些大型的项目都会有构建工具 (如 webpack 或 rollup) 来进行代码构建和压缩 (uglify)。理论上来说，我们也可以对压缩后的代码进行 babel 处理，但那会非常慢。因此如果在 uglify 之前就加入 babel 处理，岂不完美？
+前面提过 babel 的三种使用方法，并且已经介绍过了 `babel-cli`。但一些大型的项目都会有构建工具 (如 webpack 或 rollup) 来进行代码构建和压缩 (uglify)。理论上来说，我们也可以对压缩后的代码进行 babel 处理，但那会非常慢。因此如果在 uglify 之前就加入 babel 处理，岂不完美？
 
 所以就有了 babel 插入到构建工具内部这样的需求。以(我还算熟悉的) webpack 为例，webpack 有 loader 的概念，因此就出现了 `babel-loader`。
 
