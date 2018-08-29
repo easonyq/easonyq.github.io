@@ -15,7 +15,7 @@
 
 ## babel 到底做了什么？怎么做的？
 
-简单来说把 JavaScript 中 es2015/2016/2017/2046 的新语法转化为 es5，让低端运行环境(如浏览器和 node )能够认识并执行。本文以 babel 6.x 为基准进行讨论。最近 babel 出了 7.x，以后再聊。
+简单来说把 JavaScript 中 es2015/2016/2017/2046 的新语法转化为 es5，让低端运行环境(如浏览器和 node )能够认识并执行。本文以 babel 6.x 为基准进行讨论。最近 babel 出了 7.x，放在最后聊。
 
 严格来说，babel 也可以转化为更低的规范。但以目前情况来说，es5 规范已经足以覆盖绝大部分浏览器，因此常规来说转到 es5 是一个安全且流行的做法。
 
@@ -312,3 +312,89 @@ babel-register | 改写 `require` 命令，为其加载的文件进行转码，�
 babel-polyfill | 为所有 API 增加兼容方法 | 需要在所有代码之前 `require`，且体积比较大
 babel-plugin-transform-runtime & babel-runtime | 把帮助类方法从每次使用前定义改为统一 `require`，精简代码 | `babel-runtime` 需要安装为依赖，而不是开发依赖
 babel-loader | 使用 webpack 时作为一个 loader 在代码混淆之前进行代码转换 |
+
+## Babel 7.x
+
+最近 babel 发布了 7.0。因为上文都是针对 6.x 编写的，所以我们关注一下 7.0 带来的变化(核心机制方面没有变化，插件，preset，解析转译生成这些都没有变化)
+
+我只挑选一些和开发者关系比较大的列在这里，省略的多数是针对某一个 plugin 的改动。完整的列表可以参考[官网](https://babeljs.io/docs/en/v7-migration)。
+
+### preset 的变更：淘汰 es201x，删除 stage-x，强推 env (重点)
+
+淘汰 es201x 的目的是把选择环境的工作交给 env 自动进行，而不需要开发者投入精力。__凡是使用 es201x 的开发者，都应当使用 env 进行替换__。但这里的淘汰 (原文 deprecated) 并不是删除，只是不推荐使用了，不好说 babel 8 就真的删了。
+
+与之相比，stage-x 就没那么好运了，它们直接被删了。这是因为 babel 团队认为为这些 “不稳定的草案” 花费精力去更新 preset 相当浪费。但 stage-x 删除了，它包含的插件并没有删除(但是被更名了，可以看下面一节)，我们依然可以显式地声明这些插件来获得等价的效果。[完整列表](https://github.com/babel/babel/tree/master/packages/babel-preset-stage-0#babelpreset-stage-0)
+
+为了减少开发者替换配置文件的机械工作，babel 开发了一款 `babel-upgrade` 的工具，[github](https://github.com/babel/babel-upgrade)，它会检测 babel 配置中的 stage-x 并且替换成对应的 plugins。除此之外它还有其他功能，我们一会儿再详细看。(总之目的就是让你更加平滑地迁移到 babel@7.x)
+
+### npm package 名称的变化 (重点)
+
+这是 babel 7 的一个重大变化，把所有 `babel-*` 重命名为 `@babel/*`，例如：
+
+1. `babel-cli` 变成了 `@babel/cli`。
+2. `babel-preset-env` 变成了 `@babel/preset-env`。进一步，还可以省略 `preset` 而简写为 `@babel/env`。
+3. `babel-plugin-transform-arrow-functions` 变成了 `@babel/plugin-transform-arrow-functions`。和 `preset` 一样，`plugin` 也可以省略，于是简写为 `@babel/transform-arrow-functions`。
+
+这个变化不单单应用于 package.json 的依赖中，包括 .babelrc 的配置 (`plugins`, `presets`) 也要这么写，为了保持一致。例如
+
+```diff
+{
+  "presets": [
+-   "env"
++   "@babel/preset-env"
+  ]
+}
+```
+
+顺带提一句，上面提过的 babel 解析语法的内核 `babylon` 现在重命名为 `@babel/parser`，看起来是被收编了。
+
+上文提过的 stage-x 被删除了，但它包含的插件虽然保留，但也被重命名了。babel 团队希望更明显地区分已经位于规范中的插件(如 es2015 的 `babel-plugin-transform-arrow-functions`)和仅仅位于草案中的插件(如 stage-0 的 `@babel/plugin-proposal-function-bind`)。方式就是在名字中增加 `proposal`，所有包含在 stage-x 的插件都带上了这个前缀，语法插件不在其列。
+
+最后，如果插件名称中包含了规范名称 (`-es2015-`, `-es3-` 之类的)，一律删除。例如 `babel-plugin-transform-es2015-classes` 变成了 `@babel/plugin-transform-classes`。(这个插件我自己也没单独用过，惭愧)
+
+### 不再支持低版本 node
+
+babel 7.0 开始不再支持 nodejs 0.10, 0.12, 4, 5 这四个版本，相当于要求 nodejs >= 6(当前 nodejs LTS 是 8，要求也不算太过分吧)。
+
+这里的不再支持，指的是在这些低版本 node 环境中不能使用 babel 转译代码，但 babel 转译后的代码依然能在这些环境上运行，这点不要混淆。
+
+### only 和 ignore 匹配规则的变化
+
+在 babel 6 时，`ignore` 选项如果包含 `*.foo.js`，实际上的含义(转化为 glob )是 `./**/*.foo.js`，也就是当前目录 __包括子目录__ 的所有 `foo.js` 结尾的文件。这可能和开发者常规的认识有悖。
+
+于是在 babel 7，相同的表达式 `*.foo.js` 只作用于当前目录，不作用于子目录。如果依然想作用于子目录的，就要按照 glob 的完整规范书写为 `./**/*.foo.js` 才可以。`only` 也是相同。
+
+这个规则变化只作用于通配符，不作用于路径。所以 `node_modules` 依然包含所有它的子目录，而不单单只有一层。(否则全世界开发者都要爆炸)
+
+### @babel/node 从 @babel/cli 独立了
+
+和 babel 6 不同，如果要使用 `@babel/node`，就必须单独安装，并添加到依赖中。
+
+### babel-upgrade
+
+在提到删除 stage-x 时候提过这个[工具]((https://github.com/babel/babel-upgrade)，它的目的是帮助用户自动化地从 babel 6 升级到 7。
+
+这款升级工具的功能包括：(这里并不列出完整列表，只列出比较重要和常用的内容)
+
+1. package.json
+  * 把依赖(和开发依赖)中所有的 `babel-*` 替换为 `@babel/*`
+  * 把这些 `@babel/*` 依赖的版本更新为最新版 (例如 `^7.0.0`)
+  * 如果 `scripts` 中有使用 `babel-node`，自动添加 `@babel/node` 为开发依赖
+  * 如果有 `babel` 配置项，检查其中的 `plugins` 和 `presets`，把短名 (`env`) 替换为完整的名字 (`@babel/preset-env`)
+
+2. .babelrc
+  * 检查其中的 `plugins` 和 `presets`，把短名 (`env`) 替换为完整的名字 (`@babel/preset-env`)
+  * 检查是否包含 `preset-stage-x`，如有替换为对应的插件并添加到 `plugins`
+
+使用方式如下：
+
+```bash
+# 不安装到本地而是直接运行命令，npm 的新功能
+npx babel-upgrade --write
+
+# 或者常规方式
+npm i babel-upgrade -g
+babel-upgrade --write
+```
+
+`babel-upgrade` 工具本身也还在开发中，还列出了许多 TODO 没有完成，因此之后的功能可能会更加丰富，例如上面提过的 `ignore` 的通配符转化等等。
