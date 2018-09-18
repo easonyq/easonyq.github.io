@@ -2,7 +2,7 @@
 
 大家都知道缓存的英文叫做 `cache`。但我发现一个有趣的现象：这个单词在不同人的口中有不同的读音。为了全面了解缓存，我们得先从读音开始，这样才能够在和其他同事(例如 PM)交(zhuāng)流(bī)时体现自己的修(bī)养(gé)。
 
-友情提示：文章有些长，您可能需要分批次读完，当中可以喝个咖啡或者啤酒休息一下。
+友情提示：文章有些长，您可能需要分批次读完，当中可以喝个咖啡或者啤酒当作中场休息。
 
 ## cache 怎么念
 
@@ -48,7 +48,7 @@
 
 memory cache 是内存中的缓存，(与之相对 disk cache 就是硬盘上的缓存)。按照操作系统的常理：先读内存，再读硬盘。disk cache 将在后面介绍 (因为它的优先级更低一些)，这里先讨论 memory cache。
 
-几乎所有的网络请求资源都会被浏览器自动加入到 memory cache 中。但是也正因为数量很大但是浏览器占用的内存不能无限扩大这样两个因素，memory cache 注定只能是个“短期存储”。常规情况下，浏览器的 TAB 关闭后该次浏览的 memory cache 便告失效(为了给其他 TAB 腾出位置)。而如果极端情况下(例如一个页面的缓存就占用了超级多的内存)，那可能在 TAB 没关闭之前，排在前面的缓存就已经失效了。
+几乎所有的网络请求资源都会被浏览器自动加入到 memory cache 中。但是也正因为数量很大但是浏览器占用的内存不能无限扩大这样两个因素，memory cache 注定只能是个“短期存储”。常规情况下，浏览器的 TAB 关闭后该次浏览的 memory cache 便告失效 (为了给其他 TAB 腾出位置)。而如果极端情况下 (例如一个页面的缓存就占用了超级多的内存)，那可能在 TAB 没关闭之前，排在前面的缓存就已经失效了。
 
 刚才提过，__几乎所有的请求资源__ 都能进入 memory cache，这里细分一下主要有两块：
 
@@ -62,7 +62,7 @@ memory cache 是内存中的缓存，(与之相对 disk cache 就是硬盘上的
 
 2. preload (虽然看上去和刚才的 preloader 就差了俩字母)。实际上这个大家应该更加熟悉一些，例如 `<link rel="preload">`。这些显式指定的预加载资源，也会被放入 memory cache 中。
 
-memory cache 机制保证了一个页面中如果有两个相同的请求(例如两个 `src` 相同的 `<img>`，两个 `href` 相同的 `<link>`)都实际只会被请求最多一次，避免浪费。
+memory cache 机制保证了一个页面中如果有两个相同的请求 (例如两个 `src` 相同的 `<img>`，两个 `href` 相同的 `<link>`)都实际只会被请求最多一次，避免浪费。
 
 不过在匹配缓存时，除了匹配完全相同的 URL 之外，还会比对他们的类型，CORS 中的域名规则等。因此一个作为脚本 (script) 类型被缓存的资源是不能用在图片 (image) 类型的请求中的，即便他们 `src` 相等。
 
@@ -368,7 +368,7 @@ self.addEventListener('fetch', e => {
 ### 模式 1：不常变化的资源
 
 ```
-Cache-Control: max=age=31536000
+Cache-Control: max-age=31536000
 ```
 
 通常在处理这类资源资源时，给它们的 `Cache-Control` 配置一个很大的 `max-age=31536000` (一年)，这样浏览器之后请求相同的 URL 会命中强制缓存。而为了解决更新的问题，就需要在文件名(或者路径)中添加 hash， 版本号等动态字符，之后更改动态字符，达到更改引用 URL 的目的，从而让之前的强制缓存失效 (其实并未立即失效，只是不再使用了而已)。
@@ -411,6 +411,6 @@ Cache-Control: max-age=600, must-revalidate
 
 ## 参考文章
 
-[A Tale of Four Caches](https://calendar.perfplanet.com/2016/a-tale-of-four-caches/)(但这篇文章把 Service Worker 的优先级排在 memory cache 和 disk cache 之间，跟我实验效果并不相符。怀疑可能是 2 年来 chrome 策略的修改？)
+[A Tale of Four Caches](https://calendar.perfplanet.com/2016/a-tale-of-four-caches/) (但这篇文章把 Service Worker 的优先级排在 memory cache 和 disk cache 之间，跟我实验效果并不相符。怀疑可能是 2 年来 chrome 策略的修改？)
 
 [Caching best practices & max-age gotchas](https://jakearchibald.com/2016/caching-best-practices/)
