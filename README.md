@@ -10,4 +10,4 @@
 
 * [Tree Shaking in Webpack](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/webpack/treeShaking.md) [知乎](https://zhuanlan.zhihu.com/p/41997654)
 * [一口(很长的)气了解 babel](https://github.com/easonyq/easonyq.github.io/blob/master/学习记录/others/babel.md) [知乎](https://zhuanlan.zhihu.com/p/43249121)
-* [一文读懂前端缓存] [知乎](https://zhuanlan.zhihu.com/p/44789005)
+* [一文读懂前端缓存](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/others/cache.md) [知乎](https://zhuanlan.zhihu.com/p/44789005)
