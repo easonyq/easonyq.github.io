@@ -16,3 +16,6 @@
 
 * [一文读懂前端缓存](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/others/cache.md)
   * [知乎链接](https://zhuanlan.zhihu.com/p/44789005)
+
+* [深入浏览器的事件循环](https://github.com/easonyq/easonyq.github.io/blob/master/%E6%9D%82%E9%A1%B9/others/%E6%B5%8F%E8%A7%88%E5%99%A8%E6%97%B6%20Event%20Loop.md)
+  * [知乎链接](https://zhuanlan.zhihu.com/p/45111890)
