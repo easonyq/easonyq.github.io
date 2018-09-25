@@ -1,5 +1,7 @@
 # 浏览器的 Event Loop
 
+*[知乎版本](https://zhuanlan.zhihu.com/p/45111890)*
+
 *翻译和整理自 Google Developer Day China 2018 by Jake Archibald, 2018.9.21。个人认为是整个 GDD WEB 方面最有技术含量的讲座。*
 
 *另外：本文的内容是浏览器的事件循环，并不是 nodejs 的事件循环，不要将两者混淆。*
@@ -127,38 +129,38 @@ box.style.transform = 'translateX(500px)'
 
 1. 我们刚才提过的 `requestAnimationFrame`。思路是让设置 box 的初始位置（第一句代码）在同步代码执行；让设置 box 的动画效果（第二句代码）和设置 box 的重点位置（第三句代码）放到下一帧执行。
 
-  但要注意，`requestAnimationFrame` 是在渲染过程 __之前__ 执行的，因此直接写成
+    但要注意，`requestAnimationFrame` 是在渲染过程 __之前__ 执行的，因此直接写成
 
-  ```javascript
-  box.style.transform = 'translateX(1000px)'
-  requestAnimationFrame(() => {
-    box.style.tranition = 'transform 1s ease'
-    box.style.transform = 'translateX(500px)'
-  })
-  ```
-
-  是无效的，因为这样这三句代码依然是在同一帧中出现。那如何让后两句代码放到下一帧呢？这时候我们想到一句话：没有什么问题是一个 `requestAnimationFrame` 解决不了的，如果有，那就用两个：
-
-  ```javascript
-  box.style.transform = 'translateX(1000px)'
-  requestAnimationFrame(() => {
+    ```javascript
+    box.style.transform = 'translateX(1000px)'
     requestAnimationFrame(() => {
       box.style.tranition = 'transform 1s ease'
       box.style.transform = 'translateX(500px)'
     })
-  })
-  ```
+    ```
 
-  在渲染过程之前，再一次注册 `requestAnimationFrame`，这就能够让后两句代码放到下一帧去执行了，问题解决。（当然代码看上去有点奇怪）
+    是无效的，因为这样这三句代码依然是在同一帧中出现。那如何让后两句代码放到下一帧呢？这时候我们想到一句话：没有什么问题是一个 `requestAnimationFrame` 解决不了的，如果有，那就用两个：
+
+    ```javascript
+    box.style.transform = 'translateX(1000px)'
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        box.style.tranition = 'transform 1s ease'
+        box.style.transform = 'translateX(500px)'
+      })
+    })
+    ```
+
+    在渲染过程之前，再一次注册 `requestAnimationFrame`，这就能够让后两句代码放到下一帧去执行了，问题解决。（当然代码看上去有点奇怪）
 
 2. 你之所以没有在平时的代码中看到这样奇葩的嵌套用法，是因为还有更简单的实现方式，并且同样能够解决问题。这个问题的根源在于浏览器的合并优化，那么打断它的优化，就能解决问题。
 
-  ```javascript
-  box.style.transform = 'translateX(1000px)'
-  getComputedStyle(box) // 伪代码，只要获取一下当前的计算样式即可
-  box.style.tranition = 'transform 1s ease'
-  box.style.transform = 'translateX(500px)'
-  ```
+    ```javascript
+    box.style.transform = 'translateX(1000px)'
+    getComputedStyle(box) // 伪代码，只要获取一下当前的计算样式即可
+    box.style.tranition = 'transform 1s ease'
+    box.style.transform = 'translateX(500px)'
+    ```
 
 ## Microtasks
 
@@ -222,7 +224,7 @@ listener 2
 microtask 2
 ```
 
-但如果在上面代码的最后加上 `button.click()` 打印顺序会 __有所区别__：（你也可以自己试试看）
+但如果在上面代码的最后加上 `button.click()` 打印顺序会 __有所区别__：
 
 ```
 listener 1
