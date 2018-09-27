@@ -27,18 +27,15 @@ el.style.display = 'none'
 
 每次碰到异步操作，就把操作添加到异步队列中。等待主进程为空（即没有同步代码需要执行了），就去执行异步队列。执行完成后再回到主进程。
 
-以 `setTimeout(callback， ms)` 为例，他的操作流程是
-1. 将任务 `callback` 排入异步队列
-2. 等待 ms 毫秒后
-3. 执行异步队列中的 callback
+以 `setTimeout(callback， ms)` 为例：
 
 ![setTimeout](http://boscdn.bpc.baidu.com/assets/easonyq/event-loop/setTimeout.png)
 
-初始状态：异步开关关闭（因为异步队列为空）。然后我们添加了一个任务 T 到队列中
+初始状态：异步开关关闭（因为异步队列为空）。然后 ms 毫秒后添加一个任务 T 到队列中
 
 ![setTimeout2](http://boscdn.bpc.baidu.com/assets/easonyq/event-loop/setTimeout2.png)
 
-ms 毫秒后，异步开关打开，然后主进程（白色方块）进入到异步队列，准备去执行黄色的 timeout 任务。
+异步开关打开，然后主进程（白色方块）进入到异步队列，准备去执行黄色的 timeout 任务。
 
 ## 渲染过程
 
