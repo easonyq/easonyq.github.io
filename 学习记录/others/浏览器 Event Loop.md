@@ -35,7 +35,7 @@ el.style.display = 'none'
 
 ![setTimeout2](http://boscdn.bpc.baidu.com/assets/easonyq/event-loop/setTimeout2.png)
 
-异步开关打开，然后主进程（白色方块）进入到异步队列，准备去执行黄色的 timeout 任务。
+现在异步队列不为空了，异步开关打开，然后主进程（白色方块）进入到异步队列，准备去执行黄色的 timeout 任务。
 
 ## 渲染过程
 
@@ -161,11 +161,11 @@ box.style.transform = 'translateX(500px)'
 
 ## Microtasks
 
-现在我们要引入“第三个”异步队列，叫做 microtasks。
+现在我们要引入“第三个”异步队列，叫做 Microtasks (规范中也称为 Jobs)。
 
 > Microtasks are usually scheduled for things that should happen straight after the currently executing script, such as reacting to a batch of actions, or to make something async without taking the penalty of a whole new task.
 
-简单来说, Microtasks 就是在 __当次__ 事件循环的 __结尾 立刻执行__ 的任务。`Promise.then()` 内部的代码就属于 microtasks。相对而言，之前的异步队列 (Task queue) 就叫做 macrotasks，不过一般还是简称为 tasks。
+简单来说, Microtasks 就是在 __当次__ 事件循环的 __结尾 立刻执行__ 的任务。`Promise.then()` 内部的代码就属于 microtasks。相对而言，之前的异步队列 (Task queue) 也叫做 macrotasks，不过一般还是简称为 tasks。
 
 ```javascript
 function callback() {
@@ -193,6 +193,8 @@ callback()
   补充：同 Tasks，可以考虑连续调用两句 `requestAnimationFrame`，它们会在同一次事件循环内执行，有别于 Tasks
 
 * Microtasks 直接执行到空队列才继续。因此如果任务本身又新增 Microtasks，也会一直执行下去。所以上面的例子才会产生阻塞。
+
+  补充：因为是当次执行，因此如果既设置了 `setTimeout(0)` 又设置了 `Promise.then()`，优先执行 Microtasks。
 
 ## 一段神奇的代码
 
@@ -234,12 +236,60 @@ microtask 2
 
 * 用户直接点击的时候，浏览器先后触发 2 个 listener。第一个 listener 触发完成 (`listener 1`) 之后，队列空了，就先打印了 microtask 1。然后再执行下一个 listener。__重点在于浏览器并不实现知道有几个 listener，因此它发现一个执行一个，执行完了再看后面还有没有。__
 
-* 而使用 `button.click()` 时，浏览器的内部实现是把 2 个 listener 都同步执行。因此 `listener 1` 之后，执行队列还没空，还要继续执行 "listener 2" 之后才行。所以 listener 2 会早于 microtask 1。__重点在于浏览器的内部实现，`click` 方法会先采集有哪些 listener，再依次触发。__
+* 而使用 `button.click()` 时，浏览器的内部实现是把 2 个 listener 都同步执行。因此 `listener 1` 之后，执行队列还没空，还要继续执行 `listener 2` 之后才行。所以 `listener 2` 会早于 `microtask 1`。__重点在于浏览器的内部实现，`click` 方法会先采集有哪些 listener，再依次触发。__
 
 这个差别最大的应用在于自动化测试脚本。在这里可以看出，使用自动化脚本测试和真正的用户操作还是有细微的差别。如果代码中有类似的情况，要格外注意了。
 
 另外演讲之后我额外追问了是不是只有 Chrome 才这样表现，其他浏览器如何表现呢？于是 Jake 翻出了一篇 2015 年他自己的[博客](https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/)，其中设计的 case 更加完整。但当时各种浏览器给出了不一样的输出结果，因此他还在博客中分析了一波谁对谁错。但他本人的说法，现在 2018 年，虽然并不是标准，但所有浏览器都以相同的方式返回了。这也侧面印证了当时只有 Chrome 是正确的。
 
-## 最后
+## 再来两个测试题
 
-我 TMD 忘记和大神合影了！当时问完我就急急忙忙去赶场子听下一场了，反应过来再去找，发现大神不知所踪，极度遗憾！
+第一题：
+
+```javascript
+console.log('Start')
+
+setTimeout(() => console.log('Timeout 1'), 0)
+setTimeout(() => console.log('Timeout 2'), 0)
+
+Promise.resolve().then(() => {
+  for(let i=0; i<100000; i++) {}
+  console.log('Promise 1')
+})
+Promise.resolve().then(() => console.log('Promise 2'))
+
+console.log('End');
+```
+
+第二题：(在浏览器上点击按钮)
+
+```javascript
+let button = document.querySelector('#button');
+
+button.addEventListener('click', function CB1() {
+  console.log('Listener 1');
+
+  setTimeout(() => console.log('Timeout 1'))
+
+  Promise.resolve().then(() => console.log('Promise 1'))
+});
+
+button.addEventListener('click', function CB1() {
+  console.log('Listener 2');
+
+  setTimeout(() => console.log('Timeout 2'))
+
+  Promise.resolve().then(() => console.log('Promise 2'))
+});
+```
+
+公布答案：
+
+* __第一题：__ Start, End, Promise 1, Promise 2, Timeout 1, Timeout 2
+* __第二题：__ Listener 1, Promise 1, Listener 2, Promise 2, Timeout 1, Timeout 2
+
+这两个题目来自一篇相关文章（链接在最后），其中还有详细的分析，我这里就不重复了。
+
+## 相关文章
+
+[JavaScript: How is callback execution strategy for promises different than DOM events callback?](https://medium.com/@jitubutwal144/javascript-how-is-callback-execution-strategy-for-promises-different-than-dom-events-callback-73c0e9e203b1)
