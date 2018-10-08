@@ -124,51 +124,409 @@ Google 的两个比较有代表性的例子：
 
 网页包含了越来越多的新功能，会解决网页的性能就是不如 APP 这个问题。
 
-## APP 营销最佳实践 (乱入)
+## 浏览器的 event loop （核心）
 
-*主要聚焦在如何利用 google 的各条产品线和合作品牌来提升自身 APP 的广告效果。但我觉得多数是针对出海的 APP，因为搜索，youtube，google play 等国内使用并不十分广泛。*
+已经整理到[知乎](https://zhuanlan.zhihu.com/p/45111890)
 
-Google Play 是用户获取游戏/应用的最主要渠道。广告吸引的安装次数超过60亿次。
+## 打造跨平台的 WEB 站点 （核心）
 
-本次介绍主题：UAC 通用应用广告系列
+*先强推 PWA，再强推桌面 PWA*
 
-### 解决的问题
+PWA：能够在浏览器和在桌面同时使用的站点。
 
-* 如果投放搜索广告，要设置关键词，并且为每个关键词设置点击成本。
-* 如果投放到 YOUTUBE，要投放到特定的频道。
-* 等等。
+### 一些优秀体验的移动站的建议
 
-UAC 可以免去这些设置工作，在搜索，play store, emails. web, youtube等，使用机器学习来投放广告。
-例如如果用户看完游戏视频后下载游戏的数量非常多，那 UAC 就会增加这条路径的权重。
+* __在需要时才请求权限，而不是在用户打开应用程序的时候就请求。__（这点和之前不一样了，Chrome 已经支持了）
+* 自动登录，流畅的使用流程
+* request payment API （W3C标准）能够集成 GOOGLE PAY。（国内悬）
+* 有 42% 的站点没有为输入框 (input) 指定类型 (type)，因此体验欠佳
+* 谷歌列出了一些最佳实践，来指导用户如何去把自己的移动站点做得更好。
 
-这里又学到了两个概念：
-* CPI 单次安装成本  安装，推广。主要目标是下载/激活。
-* CPA 单次事件成本  留存，活跃，营收。主要目标是用户质量。
+Service Worker 已经可以安装在几乎全部的浏览器上。
+腾讯新闻接入了 Service Worker 之后，性能提升，浏览次数，转化率均有提升
 
-### 优秀的视频广告特点
+演示了 Starbucks PWA，通过 PWA 下达的订单增长超过 12%，每日和每月的活跃用户几乎翻倍。桌面用户无需使用移动设备即可下单。
 
-1. 15-30S
-2. 加入音乐和字幕
-3. 尽早的抓住眼球，显示出品牌。最好在1/4时长之前更容易获得更高的转化率
-4. 结尾处（最后一帧）加入号召文字或者按钮图案。（马上下载，马上游玩等等）
+__53% 的用户会放弃加载时间超过3秒的网站。__
 
-H5 广告：
+### PWA 应用的特点
 
-1. 有清晰的号召按钮
-2. 增加激励性，如折扣优惠等。
+四个特点：速度快，可安装，可依赖，体验好。
 
-谷歌拥有丰富多样的用户行为数据
+* 速度快
+    * 使用 placeholder content 控件（类似于 skeleton，也可以是低精度的站位图片）
+    * 预缓存内容
 
-* 浏览记录
-* 应用内的购买频率
-* 玩过的游戏类型
-* 搜索词条
-* 位置 （考虑时差）
-* 时段 （例如工作日推游戏就不是很有效）
-* 设备类型 （例如有没有买最新的 iphone）
-* 从 youtube 看过什么视频（有73%的玩家喜欢看别人打游戏，48%的玩家喜欢看别人打游戏超过自己打游戏，61%玩家会在购买游戏之前看 youtube 视频）
+* 可安装
+    * 外观和行为与其他本地 APP 类似。（添加到桌面并从桌面打开，没有浏览器样式）
+    * Web APK：PWA 可以像普通 APP 一样出现在引用程序中。（例如使用某程序打开的列表，分享的列表等均可以出现。目前安卓已经实现）
+    * CHROME 显示添加到主屏的条件，还包括 __“必须包含一个监听 fetch 事件的 Service Worker”__
+    * 避免一进入 APP 就弹出添加到首屏的提示。
+        * 监听 `beforeinstallprompt` 保存 `event`
+        * 之后调用 `event.prompt()` 弹出添加到主屏的提示
+        * 安装成功后有 `appinstalled` 事件发射出来
 
-根据这些行为数据，能够猜测用户画像，从而有针对性地去对这类用户制作视频，精准投放。举了网易的荒野行动进军日本的例子，有针对性的转化率为4倍。
+* 可信赖
+    * 使用 workbox (一个快速生成 Service Worker 的工具，也由 Google 开发)
+    * 预缓存内容 (precache)
+    * 运行时缓存 (runningCache)
+    * 使用 indexDB 缓存内容
+
+* 体验好
+    * 恰当的后退导航按钮（不要一下子退到最外面，要一步一步）
+    * 使用 toast 最小化影响主体内容。
+
+### GOOGLE 的 PWA
+
+* GOOGLE 搜索：
+    * 外部的 JS 请求减少 50%
+    * 由加载 JS 引起的用户延迟减少 6%
+
+* Bulletin
+    * 体积比 APP 更小
+    * 支持包括照片和视频在内的多媒体捕获（拍照，拍视频）
+
+* GOOGLE 地图
+    * 从根本上改善低端设备或有限网络环境中的体验
+    * 核心用户应用场景：
+        1. 找到自己的位置
+        2. 寻找一个位置
+        3. 寻找附近的位置
+        4. 寻找路线&导航
+    * 页面加载成功率提升 20%
+
+    * 缓存策略：（多种缓存配合）
+        * 浏览器缓存 maps tiles
+        * indexDB 记录用户搜索和 map files 版本等。
+
+### 桌面 PWA
+
+根据统计：白天10点到7点，desktop 的使用时间超过 phone 或者 tablet。
+
+在桌面应用上，常规的做法是自定义构建一个简易的浏览器内核，并使用它容纳网页。但实际上用户的 PC 上可能已经有不止一个浏览器。因此我们实际上应该聚焦在应用的内容本身，而不需要那个浏览器外壳。
+
+因此我们需要跨浏览器，跨操作系统的 PWA APP。（WINDOWS 和 MacOS 都可以运行的）
+
+实现方面，同样使用 manifest.json，重要的是 scope 属性（和 Service Worker 的 scope 类似）
+
+在桌面应用也需要使用响应式设计，根据宽度和大小的不同，显示不同的内容。（例如天气预报，可以分7天，5天，3天，小图标等等）
+
+更多详情可以参阅
+
+* [Chromium Blog](https://blog.chromium.org)
+* [网络应用安装横幅](https://developers.google.com/web/fundamentals/app-install-banners/)
+* [Progressive Web Apps on the Desktop](https://developers.google.com/web/updates/2018/05/dpwa)
+* [Scope in Manifest.json](https://developer.mozilla.org/en-US/docs/Web/Manifest#scope)
+
+## Google AMP （核心）
+
+*对 AMP 进行了大概的介绍*
+
+### 原因
+
+需要使用 AMP 的原因主要是因为传统网页加载太慢，loading 时间太长。以下是一些统计数据：
+
+* 53% 的用户放弃加载用时超过3秒的网页
+* 3g 下的平均加载页面用时 19 秒
+* 60% 的全球移动网络用的是 2g
+
+### 组成部分
+
+AMP 是由几个部分组成的：
+
+* html (普通 HTML + AMP 组件)
+* js (内联的脚本或者绑定属性)
+* cache (Google AMP cache 自动抓取)
+
+### 做法
+
+AMP 的做法包括
+
+* 阻止加载耗时的内容
+* 待加载完后才显示内容
+* 严禁投放令用户分神的广告
+* 直到用户需要才加载相关内容 (lazy loading)
+
+### amp-bind
+
+根据用户的交互，使用数据绑定 (data binding) 和表达式 (expressions) 来动态变化页面的显示内容。
+
+通过 3 个步骤实现这个过程：
+
+1. state （设定初始状态，例子如下）
+
+    ```html
+    <amp-state id="team">
+        <script type="application/json">
+            {"star": "Yao Ming"}
+        </script>
+    </amp-state>
+    ```
+
+2. bind （在页面某个位置将显示和状态关联起来，例如 `<p [text]="team.star + ' is tall!'">`）
+3. mutation (通过 `AMP.setState` 来更新状态，例如 `<button on="tap:AMP.setState({team: {star: '姚明'}})">`)
+
+### AliExpress 迁移到 AMP 的优缺点分析
+
+AliExpress （海外的阿里） 使用了 AMP，因此 Google 以他们为范例，阐述了 AMP 的得失
+
+* 劣势
+    1. 只能使用 AMP 组件
+    2. 不能使用 cookies 和 localStorage
+    3. 无法直接支持 touch 事件
+* 优势
+    1. 重点关注在业务逻辑上，花更少的精力在性能方面，开发效率更高
+    2. 能够给开源项目输出代码 （例如 `<amp-date-countdown>` 组件）
+    3. 依靠 AMP 获得了更好的性能
+    4. SEO 效果更好
+
+### 更多信息
+
+最后是 3 个参考网站
+
+* [ampproject.org](http://ampproject.org)
+* [ampbyexample.com](http://ampbyexample.com)
+* [ampstart.com](http://ampstart.com)
+
+## Google 的两款工具推荐：lighthouse & puppeteer (核心)
+
+*lighthouse & puppeteer，值得使用和学习*
+
+### lighthouse
+
+网站评分工具，目前是 3.0 版本。它能够衡量一个移动战的各类指标，并指出网站提升的方向。它的审查内容包括：
+
+* PWA 功能
+* 最佳范例
+* 可访问性
+* SEO
+* 性能
+
+使用方法：(任选其一)
+
+* Chrome Dev Tools (F12)
+* Chrome Extensions
+* npm (使用 nodejs 线下跑分)
+* web (直接去 lighthouse 官网输入网址在线测试)
+* github + travis 可以作为 PR 的 task （类似于自动化测试那样，每次发起 PR 都运行一下，给出分数变化趋势）。具体使用方法可以参考 [lighthouse-ci](https://github.com/ebide/lighthouse-ci/)，可以设置及格线，站点 URL 等等。
+
+### 衡量页面的一些指标
+
+* FP - 第一次页面显示
+* FCP - 第一次有内容的页面显示
+* FMP - 第一次有意义的页面显示
+* TTI - 可以开始用户交互
+
+![指标](http://boscdn.bpc.baidu.com/assets/easonyq/gdd/benchmark.jpg)
+
+![指标](http://boscdn.bpc.baidu.com/assets/easonyq/gdd/benchmark-2.jpg)
+
+![指标](http://boscdn.bpc.baidu.com/assets/easonyq/gdd/benchmark-4.jpg)
+
+![指标](http://boscdn.bpc.baidu.com/assets/easonyq/gdd/benchmark-3.jpg)
+
+这部分还可以参阅一篇微博：[以用户为中心的性能指标](https://xiaoiver.github.io/coding/2017/06/09/%E4%BB%A5%E7%94%A8%E6%88%B7%E4%B8%BA%E4%B8%AD%E5%BF%83%E7%9A%84%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87.html)
+
+### puppeteer
+
+首先讲一个概念，叫做 headless chrome。简单来说就是没有头尾的浏览器，也就是浏览器内核。它的特点是：
+
+* 内核与最新的 Chrome 保持一致
+* 可以使用最新的功能和接口，例如 streams, cssgrid, service worker 等等
+* 能够通过代码操作 Dev Tools 的功能和数据，例如模拟网络延时，模拟设备等等
+
+puppeteer 基于这样一个内核，给开发者提供一套接口，来做一些事情，简单结构如下：
+
+![puppeteer 结构](http://boscdn.bpc.baidu.com/assets/easonyq/gdd/puppeteer-structure.jpg)
+
+利用这个可以做哪些事情呢？下面举几个例子：
+
+1. 截屏
+
+    ```javascript
+    puppeteer.launch().then(async browser => {
+        const page = await browser.newPage()
+        await page.goto('https://example.com')
+        await page.screenshot({path: 'example.png'})
+
+        await browser.close()
+    })
+    ```
+
+2. 获取页面数据
+
+    ```javascript
+    const metrics = await page.metrics()
+
+    // metrics.ScriptDuration
+    // metrics.LayoutDuration
+    // metrics.RecalcStyleDuration
+    // metrics.JSHeapUsedSize
+    // metrics.NodeCount
+    ```
+
+    ![页面数据](http://boscdn.bpc.baidu.com/assets/easonyq/gdd/page-data.jpg)
+
+3. 拦截网络请求
+
+    ```javascript
+    await page.setRequestInterception(true)
+
+    page.on('request', req => {
+        if (req.resourceType === 'image') {
+            req.abort()
+        }
+        req.continue()
+    })
+
+    await page.goto('https://www.youtube.com/')
+    ```
+
+4. 生成 PDF
+
+    ```javascript
+    const page = await browser.newPage()
+
+    await page.setContent(`
+        <!doctype html>
+        <h1>Some Report in PDF</h1>
+        ...
+    `)
+
+    await page.setViewPort({
+        width: 1280,
+        height: 1024,
+        deviceScaleFactor: 2
+    })
+
+    await page.pdf({
+        path: 'report.pdf',
+        margin: {top: '16px', ...}
+    })
+    ```
+
+5. 验证每个请求是否可以离线访问
+
+    ```javascript
+    const resp = request.response().fromServiceWorker()
+    console.log(url, resp ? '√' : '×')
+    ```
+
+更多的例子可以参考 [puppeteer-examples](https://github.com/GoogleChromeLabs/puppeteer-examples) 和 [pptraas.com](http://pptraas.com)
+
+最后，还额外推荐了两个开发工具：
+* [ndb](https://github.com/GoogleChromeLabs/ndb) - an improved debugging experience for Node.js, enabled by Chrome DevTools
+* [page speed insights](https://developers.google.com/speed/pagespeed/insights/)
+
+## 深入探讨 WEB 上的新功能 (核心)
+
+*海量最新 API 正在袭来！*
+
+先介绍了 PWA 和 Service Worker。 OFO 把 PWA 应用于共享单车，在美国上线了。
+
+随后是一大堆最新的 API。这些 API 有些刚刚加入标准，有些尚未加入标准。但均已经在 Google Chrome 上实现了。
+
+因为 API 和代码太多，我也没能全部记住 & 查阅，因此这里仅列出大致内容和关键词。
+
+### 操作系统整合
+
+1. 其实就是添加到桌面，manifest.json，但是增加了安装成功的事件。
+
+    ```javascript
+    window.addEventListener('appinstalled', e => app.logEvent('a2hs', 'installed'))
+    ```
+
+2. `<input type="file" accept="image/*">` 像 APP 那样选择图片。其中 `accept = image` 是新增的选项
+
+3. `navigator.share` 分享功能
+
+    ```javascript
+    let result = await navigator.share({
+      title: 'Paul Rocks',
+      text: 'He really does!',
+      url: 'https://paul.kinlan.me/'
+    })
+    ```
+
+4. Share Receiver。 能够像本地 APP 一样，在其他网页分享时，显示在分享程序的列表中。通过在 manifest.json 中增加 `share_target` 对象来实现这个功能。
+
+    ```javascript
+    // manifest.json
+    "share_target": {
+      "action": "compose/tweet",
+      "params": {
+        title,
+        text,
+        url
+      }
+    }
+    ```
+
+5. download manager 后台下载，断点续传，完成后的通知等等。
+
+6. `navigator.mediaSession` 控制媒体（视频，音频等）能够控制播放的标题，图片，进度，控制前进后退等等。
+
+7. `document.pictureInPictureElement` 允许浏览器退到后台时，画面依然在设备的桌面上（类似悬浮窗口）。
+
+### 高级多媒体
+
+统计数据：__有 70% 的网络流量来自视频__
+
+1. `navigator.mediaDevices.enumerateDevices`：获取系统上可用的多媒体输入和输出设备的信息，如麦克风，摄像头等
+
+2. `new ImageCapture`：截图
+
+3. `navigator.mediaDevices.getUserMedia`：向用户请求权限获取音频或者视频流等。
+
+    ```javascript
+    let stream = await navigator.mediaDevices.getUserMedia({video: true})
+    let video = document.querySelector('video');
+    video.srcObject = stream;
+    video.onloadedmetadata = function(e) {
+        video.play();
+    };
+    ```
+
+4. `canvas.captureStream(25)`：实时捕获 canvas 画布上的内容，输出为流，参数为帧率。
+
+### 识别相关
+
+1. 识别二维码
+
+    ```javascript
+    let detector = new BarcodeDetector()
+    let codes = await detctor.detect(image)
+    ```
+
+2. `new FaceDetector()` 识别人脸
+3. `new TextDetector()` 识别文字
+
+### 硬件
+
+1. Web BlueTooth
+
+    ```javascript
+    const device = await navigator.bluetooth.requestDevice(...)
+    ```
+
+2. Web USB
+
+    ```javascript
+    let device = await navigator.usb.requestDevice(...)
+    ```
+
+3. Ambient Light Sensor (环境光传感器)
+
+    ```javascript
+    let als = new AmbientLightSensor({frequency: 10})
+    ```
+4. Presentation API
+
+    ```javascript
+    const pr = new PresentationRequest('https://airhorner.com/')
+    ```
+
+developers.google.cn/web 有列出更多的信息
 
 ## WEB 电子商务 （扩展）
 
@@ -312,182 +670,48 @@ widget tree -> element tree -> render tree -> layer
 4. 将 Flutter 用于 APP 的某一部分 （线上演示的闲鱼就是这种）
     在生产环境中使用 Flutter 测试现有 APP 中的一个或者几个页面
 
-## 打造跨平台的 WEB 站点 （核心）
+## APP 营销最佳实践 (乱入)
 
-*先强推 PWA，再强推桌面 PWA*
+*主要聚焦在如何利用 google 的各条产品线和合作品牌来提升自身 APP 的广告效果。但我觉得多数是针对出海的 APP，因为搜索，youtube，google play 等国内使用并不十分广泛。*
 
-PWA：能够在浏览器和在桌面同时使用的站点。
+Google Play 是用户获取游戏/应用的最主要渠道。广告吸引的安装次数超过60亿次。
 
-### 一些优秀体验的移动站的建议
+本次介绍主题：UAC 通用应用广告系列
 
-* __在需要时才请求权限，而不是在用户打开应用程序的时候就请求。__（这点和之前不一样了，Chrome 已经支持了）
-* 自动登录，流畅的使用流程
-* request payment API （W3C标准）能够集成 GOOGLE PAY。（国内悬）
-* 有 42% 的站点没有为输入框 (input) 指定类型 (type)，因此体验欠佳
-* 谷歌列出了一些最佳实践，来指导用户如何去把自己的移动站点做得更好。
+### 解决的问题
 
-Service Worker 已经可以安装在几乎全部的浏览器上。
-腾讯新闻接入了 Service Worker 之后，性能提升，浏览次数，转化率均有提升
+* 如果投放搜索广告，要设置关键词，并且为每个关键词设置点击成本。
+* 如果投放到 YOUTUBE，要投放到特定的频道。
+* 等等。
 
-演示了 Starbucks PWA，通过 PWA 下达的订单增长超过 12%，每日和每月的活跃用户几乎翻倍。桌面用户无需使用移动设备即可下单。
+UAC 可以免去这些设置工作，在搜索，play store, emails. web, youtube等，使用机器学习来投放广告。
+例如如果用户看完游戏视频后下载游戏的数量非常多，那 UAC 就会增加这条路径的权重。
 
-__53% 的用户会放弃加载时间超过3秒的网站。__
+这里又学到了两个概念：
+* CPI 单次安装成本  安装，推广。主要目标是下载/激活。
+* CPA 单次事件成本  留存，活跃，营收。主要目标是用户质量。
 
-### PWA 应用的特点
+### 优秀的视频广告特点
 
-四个特点：速度快，可安装，可依赖，体验好。
+1. 15-30S
+2. 加入音乐和字幕
+3. 尽早的抓住眼球，显示出品牌。最好在1/4时长之前更容易获得更高的转化率
+4. 结尾处（最后一帧）加入号召文字或者按钮图案。（马上下载，马上游玩等等）
 
-* 速度快
-    * 使用 placeholder content 控件（类似于 skeleton，也可以是低精度的站位图片）
-    * 预缓存内容
+H5 广告：
 
-* 可安装
-    * 外观和行为与其他本地 APP 类似。（添加到桌面并从桌面打开，没有浏览器样式）
-    * Web APK：PWA 可以像普通 APP 一样出现在引用程序中。（例如使用某程序打开的列表，分享的列表等均可以出现。目前安卓已经实现）
-    * CHROME 显示添加到主屏的条件，还包括 __“必须包含一个监听 fetch 事件的 Service Worker”__
-    * 避免一进入 APP 就弹出添加到首屏的提示。
-        * 监听 `beforeinstallprompt` 保存 `event`
-        * 之后调用 `event.prompt()` 弹出添加到主屏的提示
-        * 安装成功后有 `appinstalled` 事件发射出来
+1. 有清晰的号召按钮
+2. 增加激励性，如折扣优惠等。
 
-* 可信赖
-    * 使用 workbox (一个快速生成 Service Worker 的工具，也由 Google 开发)
-    * 预缓存内容 (precache)
-    * 运行时缓存 (runningCache)
-    * 使用 indexDB 缓存内容
+谷歌拥有丰富多样的用户行为数据
 
-* 体验好
-    * 恰当的后退导航按钮（不要一下子退到最外面，要一步一步）
-    * 使用 toast 最小化影响主体内容。
+* 浏览记录
+* 应用内的购买频率
+* 玩过的游戏类型
+* 搜索词条
+* 位置 （考虑时差）
+* 时段 （例如工作日推游戏就不是很有效）
+* 设备类型 （例如有没有买最新的 iphone）
+* 从 youtube 看过什么视频（有73%的玩家喜欢看别人打游戏，48%的玩家喜欢看别人打游戏超过自己打游戏，61%玩家会在购买游戏之前看 youtube 视频）
 
-### GOOGLE 的 PWA
-
-* GOOGLE 搜索：
-    * 外部的 JS 请求减少 50%
-    * 由加载 JS 引起的用户延迟减少 6%
-
-* Bulletin
-    * 体积比 APP 更小
-    * 支持包括照片和视频在内的多媒体捕获（拍照，拍视频）
-
-* GOOGLE 地图
-    * 从根本上改善低端设备或有限网络环境中的体验
-    * 核心用户应用场景：
-        1. 找到自己的位置
-        2. 寻找一个位置
-        3. 寻找附近的位置
-        4. 寻找路线&导航
-    * 页面加载成功率提升 20%
-
-    * 缓存策略：（多种缓存配合）
-        * 浏览器缓存 maps tiles
-        * indexDB 记录用户搜索和 map files 版本等。
-
-### 桌面 PWA
-
-根据统计：白天10点到7点，desktop 的使用时间超过 phone 或者 tablet。
-
-在桌面应用上，常规的做法是自定义构建一个简易的浏览器内核，并使用它容纳网页。但实际上用户的 PC 上可能已经有不止一个浏览器。因此我们实际上应该聚焦在应用的内容本身，而不需要那个浏览器外壳。
-
-因此我们需要跨浏览器，跨操作系统的 PWA APP。（WINDOWS 和 MacOS 都可以运行的）
-
-实现方面，同样使用 manifest.json，重要的是 scope 属性（和 Service Worker 的 scope 类似）
-
-在桌面应用也需要使用响应式设计，根据宽度和大小的不同，显示不同的内容。（例如天气预报，可以分7天，5天，3天，小图标等等）
-
-更多详情可以参阅
-
-* [Chromium Blog](https://blog.chromium.org)
-* [网络应用安装横幅](https://developers.google.com/web/fundamentals/app-install-banners/)
-* [Progressive Web Apps on the Desktop](https://developers.google.com/web/updates/2018/05/dpwa)
-* [Scope in Manifest.json](https://developer.mozilla.org/en-US/docs/Web/Manifest#scope)
-
-## 浏览器的 event loop （核心）
-
-已经整理到[知乎](https://zhuanlan.zhihu.com/p/45111890)
-
-## 深入探讨 WEB 上的新功能 (核心)
-
-*海量最新 API 正在袭来！*
-
-先介绍了 PWA 和 Service Worker。 OFO 把 PWA 应用于共享单车，在美国上线了。
-
-随后是一大堆最新的 API。这些 API 有些刚刚加入标准，有些尚未加入标准。但均已经在 Google Chrome 上实现了。
-
-### 操作系统整合
-
-1. 其实就是添加到桌面，manifest.json，但是增加了安装成功的事件。
-
-    ```javascript
-    window.addEventListener('appinstalled', e => app.logEvent('a2hs', 'installed'))
-    ```
-
-2. `<input type="file" accept="image/*">` 像 APP 那样选择图片 `accept = image` 是新增的选项
-
-3. `navigator.share` 分享功能
-
-    ```javascript
-    let result = await navigator.share({
-      title: 'Paul Rocks',
-      text: 'He really does!',
-      url: 'https://paul.kinlan.me/'
-    })
-    ```
-TODO
-4. Share Receiver。 能够像本地 APP 一样，在其他网页分享时，显示在分享程序的列表中。
-
-    ```json
-    // manifest.json
-    "share_target": {
-      action: 'compose/tweet',
-      params: {
-        title,
-        text,
-        url
-      }
-    }
-    ```
-
-5. download manager 后台下载，断点续传，完成后的通知等等。
-  let bf = serviceWorker.registration.batchF
-
-6. navigator.mediaSession  控制媒体（视频，音频等）能够控制播放的标题，图片，进度，控制前进后退等等。
-
-7. document.pictureInPictureElement 允许浏览器退到后台时，画面依然在设备的桌面上。
-
-  await video.requestPictureInPicture()
-
-### 高级多媒体
-
-70% 的网络流量来自视频
-
-camera mic webRTC screen canvas
-
-1. navigator.mediaDevices.enumerateDevices
-2. new ImageCapture
-3. let stream = await navigator.getDisplayMedia({video: true})
-  videoElement.srcObject = stream
-
-4. canvas.captureStream(25)
-
-识别相关
-1. let detector = new BarcodeDetector 识别二维码
-  let codes = await detctor.detect(image)
-2. new FaceDetector 识别人脸
-3. new TextDetector 识别文字
-
-其他
-1. new MediaRecorder 录制屏幕的 API
-
-### 硬件
-
-1. Web BlueTooth
-  const device = await navigator.bluetooth.requestDevice(...)
-2. Web USB
-  let device = await navigator.usb.requestDevice(...)
-3. Ambient Light Sensor
-  let als = new AmbientLightSensor({frequency: 10})
-4. Presentation API
-  const pr = new PresentationRequest('https://airhorner.com/')
-
-developers.google.cn/web 有列出更多的信息
+根据这些行为数据，能够猜测用户画像，从而有针对性地去对这类用户制作视频，精准投放。举了网易的荒野行动进军日本的例子，有针对性的转化率为4倍。
