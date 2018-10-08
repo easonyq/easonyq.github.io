@@ -142,7 +142,7 @@ box.style.transform = 'translateX(500px)'
     box.style.transform = 'translateX(1000px)'
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        box.style.tranition = 'transform 1s ease'
+        box.style.transition = 'transform 1s ease'
         box.style.transform = 'translateX(500px)'
       })
     })
@@ -155,7 +155,7 @@ box.style.transform = 'translateX(500px)'
     ```javascript
     box.style.transform = 'translateX(1000px)'
     getComputedStyle(box) // 伪代码，只要获取一下当前的计算样式即可
-    box.style.tranition = 'transform 1s ease'
+    box.style.transition = 'transform 1s ease'
     box.style.transform = 'translateX(500px)'
     ```
 

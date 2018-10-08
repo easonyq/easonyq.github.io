@@ -1,0 +1,68 @@
+机器学习
+根据大量示例进行预测
+数据是一切的基础
+筛选，调节等
+
+例子来自bbc
+
+收集数据
+从google bigquery收集数据，里面包含各种数据，例如stackoverflow
+
+准备数据
+例如先全部改成小写，把html的tag替换掉，把标题和正文放一起等等。
+需要将需要转化为数字
+构建词袋模型 。从词汇表找出句子中的出现位置。
+
+选择模型
+其实准备数据中需要使用模型。这里就又提到了tensorflow，包含多个模型。
+
+训练
+训练数据给模型，然后预测，然后测试并更新模型。然后打乱数据继续这个步骤。一个步骤叫做batch，而epochs就是执行了多少个batch
+
+评估
+
+超参数调节
+用于调整参数的参数 kaggle kernel
+可能把模型调整的更加精确
+
+预测
+模型正确之后，就可以预测以后的数据了。
+
+==================
+amp
+why
+传统网页太慢，loading
+53%的用户放弃加载用时超过3秒的网页
+3g下的平均加载页面用时19秒
+60%的全球移动网络用的是2g
+
+组成
+amp html+amp js+amp cache
+
+做法
+阻止加载耗时的内容
+待加载完后才显示内容
+严禁投放令用户分神的广告
+直到用户需要才加载相关内容 lazy loading
+
+amp-bind
+state bind mutate
+
+amp.cards  amp->amp pwa
+
+==================
+lighthouse
+手机性能衡量工具，作为一个标准，告诉网页哪里还能提升
+使用方法
+f12
+chrome extension
+npm
+web
+github+travis 可以当成pr的评判 通过lighthouse ci
+
+puppeteer
+headless chrome
+nodejs chromium library 包含一个很小的浏览器内核 可以做测试，爬虫，截图性能分析，拦截请求等等。
+
+ndb  node debugger
+page speed insights
