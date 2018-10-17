@@ -10,3 +10,26 @@
 
 * flutter
   [咸鱼的知乎](https://www.zhihu.com/collection/253384895)
+
+===
+一些可能有用的数据
+
+* PWA 的实际收益 （数据截止 2017 年，来自国外网站）
+    * Twitter
+        * 页面停留时长增加 65%
+        * 发推量增加 75%
+        * 跳出率降低 20%
+
+    * The Weather Channel
+        * 页面加载耗时减少了 80%
+
+    * MakeMyTrip
+        * PWA 版本的购物用户增加了 160%
+        * 页面加载速度增加 38%
+        * 首次购物者转化比 APP 多 3 倍
+
+    * Forbes
+        * 访问时长增加 2 倍
+        * 访问次数增加 20%
+
+    * 数据来自 [https://www.pwastats.com](https://www.pwastats.com)
