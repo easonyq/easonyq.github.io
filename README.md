@@ -19,3 +19,6 @@
 
 * [深入浏览器的事件循环](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/others/%E6%B5%8F%E8%A7%88%E5%99%A8%20Event%20Loop.md)
   * [知乎链接](https://zhuanlan.zhihu.com/p/45111890)
+
+* [数据劫持 OR 数据代理](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/js/%E6%95%B0%E6%8D%AE%E5%8A%AB%E6%8C%81.md)
+  * [知乎链接](https://zhuanlan.zhihu.com/p/47041290)
