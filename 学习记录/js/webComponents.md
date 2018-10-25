@@ -16,7 +16,7 @@
 >
 > 那么，你有听说过原生 HTML 组件吗？
 
-# 四大 Web 组件标准
+## 四大 Web 组件标准
 
 在说原生 HTML 组件之前，要先简单介绍一下四大 Web 组件标准，四大 Web 组件标准分别为：HTML Template、Shadow DOM、Custom Elements 和 HTML Imports。实际上其中一个已经被废弃了，所以变成“三大”了。
 
@@ -30,7 +30,7 @@ HTML Imports 则是 HTML 中类似于 ES6 Module 的一个东西，你可以直�
 
 ![Deprecated HTML Imports](https://knownsec-fed.com/static/00-83259512f0eb8dc4bd12fa21741c71e7-27b4d.png)
 
-# Shadow DOM
+## Shadow DOM
 
 要说原生 HTML 组件，就要先聊聊 Shadow DOM 到底是个什么东西。
 
@@ -90,7 +90,7 @@ video::-webkit-media-controls-overlay-play-button {
 
 这解决了现在绝大多数的组件化框架都面临的问题：Element 的 class(className) 到底怎么写？用前缀命名空间的形式会导致 class 名太长，像这样：`.header-nav-list-sublist-button-icon`；而使用一些 CSS-in-JS 工具，可以创造一些唯一的 class 名称，像这样：`.Nav__welcomeWrapper___lKXTg`，这样的名称仍旧有点长，还带了冗余信息。
 
-## ShadowRoot
+### ShadowRoot
 
 ShadowRoot 是 Shadow DOM 下面的根，你可以把它当做 DOM 中的 `<body>` 一样看待，但是它不是 `<body>`，所以你不能使用 `<body>` 上的一些属性，甚至它不是一个节点。
 
@@ -100,13 +100,13 @@ ShadowRoot 是 Shadow DOM 下面的根，你可以把它当做 DOM 中的 `<body
 
 `mode: 'open'` 和 `mode: 'closed'` 有什么区别呢？在调用 `attachShadow` 创建 ShadowRoot 之后，`attachShdow` 方法会返回 ShadowRoot 对象实例，你可以通过这个返回值去构造整个 Shadow DOM。当 mode 为 `'open'` 时，在用于创建 ShadowRoot 的外部普通节点（比如 `<div>`）上，会有一个 `shadowRoot` 属性，这个属性也就是创造出来的那个 ShadowRoot，也就是说，在创建 ShadowRoot 之后，还是可以在任何地方通过这个属性再得到 ShadowRoot，继续对其进行改造；而当 mode 为 `'closed'` 时，你将不能再得到这个属性，这个属性会被设置为 `null`，也就是说，你只能在 `attachShadow` 之后得到 ShadowRoot 对象，用于构造整个 Shadow DOM，一旦你失去对这个对象的引用，你就无法再对 Shadow DOM 进行改造了。
 
-可以从上面 Shadow DOM 的截图中看到 `#shadow-root (user-agent)` 的字样，这就是 ShadowRoot 对象了，而括号中的 `user-agent` 表示这是浏览器内部实现的 Shadow DOM，如果使用通过脚本自己创建的 ShadowRoot，括号中会显示为 `open` 或 `closed` 表示 Shadow DOM 的 mode。
-
 ![Open 的 ShadowRoot 与 不Open 的 ShadowRoot](https://knownsec-fed.com/static/06-ac0c4bca4e226b08db4c513feb202537-771b0.png)
+
+可以从上面 Shadow DOM 的截图中看到 `#shadow-root (user-agent)` 的字样，这就是 ShadowRoot 对象了，而括号中的 `user-agent` 表示这是浏览器内部实现的 Shadow DOM，如果使用通过脚本自己创建的 ShadowRoot，括号中会显示为 `open` 或 `closed` 表示 Shadow DOM 的 mode。
 
 > 浏览器内部实现的 `user-agent` 的 mode 为 `closed`，所以你不能通过节点的 ShadowRoot 属性去获得其 ShadowRoot 对象，也就意味着你不能通过脚本对这些浏览器内部实现的 Shadow DOM 进行改造。
 
-# HTML Template
+## HTML Template
 
 有了 ShadowRoot 对象，我们可以通过代码来创建内部结构了，对于简单的结构，也许我们可以直接通过 `document.createElement` 来创建，但是稍微复杂一些的结构，如果全部都这样来创建不仅麻烦，而且代码可读性也很差。当然也可以通过 ES6 提供的反引号字符串（`const template = `......`;`）配合 innerHTML 来构造结构，利用反引号字符串中可以任意换行，并且 HTML 对缩进并不敏感的特性来实现模版，但是这样也是不够优雅，毕竟代码里大段大段的 HTML 字符串并不美观，即便是单独抽出一个常量文件也是一样。
 
@@ -134,7 +134,7 @@ const shadowRoot = div.attachShadow({ mode: 'closed' });
 shadowRoot.appendChild(copy);
 ```
 
-# HTML Imports
+## HTML Imports
 
 有了 HTML Template，我们已经可以方便地创造封闭的 Web 组件了，但是目前还有一些不完美的地方：我们必须要在 html 中定义一大批的 `<template>`，每个组件都要定义一个 `<template>`。
 
@@ -146,7 +146,7 @@ shadowRoot.appendChild(copy);
 
 未来新的 HTML Imports 将会以 ES6 Module 的形式提供，可以在 JavaScript 中直接 `import * as template from './template.html';`，也可以按需 import，像这样：`const template = await import('./template.html');`。不过目前虽然浏览器都已经支持 ES6 Modules，但是在 import 其他模块时会检查服务端返回文件的 MIME 类型必须为 JavaScript 的 MIME 类型，否则不允许加载。
 
-# Custom Elements
+## Custom Elements
 
 有了上面的三个组件标准，我们实际上只是对 HTML 进行拆分而已，将一个大的 DOM 树拆成一个个相互隔离的小 DOM 树，这还不是真正的组件。
 
@@ -216,9 +216,9 @@ my-element:not(:defined) {
 
 这样，我们就可以放心的在加载 Custom Elements 的 JavaScript 的 `<script>` 标签上使用 `async` 属性来延迟加载了（当然，如果是使用 ES6 Modules 形式的话默认的加载行为就会和 `defer` 类似）。
 
-![script async defer](/08-c9cc87051884db233601687712b81647.svg)
+![script async defer](http://boscdn.bpc.baidu.com/assets/easonyq/web-components/defer.jpg)
 
-## Custom Elements + Shadow DOM
+### Custom Elements + Shadow DOM
 
 使用 Custom Elements 来创建组件时，通常会与 Shadow DOM 进行结合，利用 Shadow DOM 的隔离性，就可以创造独立的组件。
 
@@ -290,11 +290,21 @@ customElements.define('my-list', MyList);
 
 有时我们需要在 Shadow DOM 内部使用完全自定义的样式，比如字体样式、字体大小，如果任由其继承可能导致布局错乱，而每次在组件外面指定样式又略显麻烦，并且也破坏了组件的封装性。所以，Shadow DOM 提供了一个 `all` 属性，只要指定 `:host{ all: initial; }` 就可以重置所有继承的属性。
 
-> ### Demo
+> #### Demo
 >
 > Web Components 的 Demo 在网上已经有很多了，这是我 2 年前初次接触 ES6 与 Web Components 的时候写的一个 Demo：[https://github.com/jinliming2/Calendar-js](https://github.com/jinliming2/Calendar-js)，一个日历，当时还是 v0 的规范，并且在 Firefox 下还存在会导致 Firefox 崩溃的 Bug（感觉是 Firefox 在实现 Shadow DOM 时的 Bug）。目前这个 Demo 已经不能在 Firefox 下运行了，因为 Firefox 已经删除了 v0 规范，开始实行 v1 标准了，所以近期我可能会重构一下这个 Demo。
 
-# 总结
+## 总结
+
+1. Shadow DOM - 也是一棵 DOM 树，可以挂载到普通 DOM 节点上，但可以和外界的 JS, CSS 等隔离，因此不必担心 id 重名， class 重名导致的样式错乱等问题。如 HTML 内置的 `<input>`, `<video>` 均由 Shadow DOM 实现。有 `mode: open/close` 两种。
+
+2. HTML Template - HTML 中的 `<template>` 标签内的内容，这部分内容浏览器不解析，只当字符串存着，所以通过 `getElementById` 等方法取不到里面的内容。这些内容可以用作模板创建其他 DOM 或者 Shadow DOM，避免在 JS 里面出现大段字符串。通过 `document.importNode` 获取**模板副本**的容器节点，然后使用普通的 DOM API 操作容器节点并挂载。也可以使用 `attachShadow` 把它挂载成一个 Shadow DOM。
+
+3. HTML Imports *deprecated,将来会通过 ES6 Modules 的形式再支持* - 为了解决普通内容 HTML 和 `<template>` 混杂在一起不方便管理的问题。把所有 `<template>` 写在同一个（也可以各自独立一个）HTML，然后通过 `<link rel="import" href="xxx'>` 来引用。未来将使用 `import * as template from 'xxx.html'` 这样的语法来引用。
+
+4. Custom Elements - 通过 JS 类的继承性质，继承 `HTMLElement` 类（或者它的子类），然后自己编写生命周期函数，并处理交互，渲染等等。这样才能称之为组件，因为是一个与外界独立且高内聚的单位。使用时需要先注册，如 `window.customElements.define('tag-name', someClass)`，之后在 HTML 直接使用 `<tag-name></tag-name>` 即可触发相关生命周期，渲染自己，绑定自己等等。
+
+5. Custom Elements + Shadow DOM - Custom Elements 组件内部渲染的内容也挂载到 DOM 上，因此也受外界的样式和 JS 的影响。如果作为一个组件想自我独立，不想受到环境影响，就应该把自己作为 Shadow DOM 挂到 DOM 上，因此这两者时常配合使用。这里还可能会用到一个 `<slot>`，作用和 Vue 的 slot 类似。
 
 [Web Components](https://github.com/w3c/webcomponents) 的概念最初是由 [Alex Russell](https://twitter.com/slightlylate) 在 [Fronteers Conference 2011](https://fronteers.nl/congres/2011/sessions/web-components-and-model-driven-views-alex-russell) 提出的，这个概念在当时非常的震撼。2013 年，Google 推出了一个叫做“[Polymer](https://en.wikipedia.org/wiki/Polymer_(library))”的 Web Components 框架以推动 Web Components 的发展。
 
@@ -311,6 +321,7 @@ v0 规范将会在 Chrome 70 中被标记弃用警告，并在 2019 年 3 月左
 > Can I Use 中包含了 [HTML Templates](https://caniuse.com/#feat=template)、[HTML Imports](https://caniuse.com/#feat=imports)、[Shadow DOM v0](https://caniuse.com/#feat=shadowdomv1)、[Custom Elements v0](https://caniuse.com/#feat=custom-elements)、[Shadow DOM v1](https://caniuse.com/#feat=shadowdomv1) 和 [Custom Elements v1](https://caniuse.com/#feat=custom-elementsv1) 的相关浏览器兼容性和注释，非常详细。
 
 原生 HTML 组件基于的 Web Components 不是单一的技术，他是由 W3C 定义的一系列浏览器标准组成的，通过浏览器自身可以理解的方式去构建组件，这将成为未来的前端标准。
+
 
 关于本文
 作者：@创宇前端（公号ID：KnownsecFED）
