@@ -2,7 +2,7 @@
 
 让网页展现的更快，官方说法叫做首屏绘制，First Paint 或者简称 FP，直白的说法叫做白屏时间，就是从输入 URL 到真的看到内容（不必可交互，那个叫 TTI, Time to Interactive）之间经历的时间。当然这个时间越短越好。
 
-但这里要注意，和首屏相关的除了 FP 还有两个指标，分别称为 FCP (First Contentful Paint，页面有效内容的绘制) 和 FMP (First Meaningful Paint，页面有意义的内容绘制)。虽然这几个概念可能会让我们绕晕，但我们只需要了解一点：**首屏时间 FP 并不要求内容是真实的，有效的，有意义的，可交互的**。换言之，*随便*给用户看点啥都行。
+但这里要注意，和首屏相关的除了 FP 还有两个指标，分别称为 FCP (First Contentful Paint，页面有效内容的绘制) 和 FMP (First Meaningful Paint，页面有意义的内容绘制)。虽然这几个概念可能会让我们绕晕，但我们只需要了解一点：**首屏时间 FP 并不要求内容是真实的，有效的，有意义的，可交互的**。换言之，*随便* 给用户看点啥都行。
 
 ![FP/FCP/FMP/TTI](http://boscdn.bpc.baidu.com/assets/easonyq/skeleton/RAIL.png)
 
@@ -110,7 +110,7 @@
 
 ### 示例
 
-我编写了一个示例，用于快速展现骨架屏的效果，[代码在此]。(https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/normal/index.html)
+我编写了一个示例，用于快速展现骨架屏的效果，[代码在此](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/normal/)。
 
 * `index.html`
 
@@ -124,7 +124,7 @@
 
     页面实际内容的样式表，不包含骨架屏的样式。
 
-代码的三个文件各司其职，配合上面的实现思路，应该还是很好理解的。可以在[https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/normal/index.html](https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/normal/index.html) 查看效果。
+代码的三个文件各司其职，配合上面的实现思路，应该还是很好理解的。可以在 [这里](https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/normal/index.html) 查看效果。
 
 因为这个示例的逻辑太过简单，而实际的前端渲染框架复杂得多，包含的功能也不单纯是渲染，还有状态管理，路由管理，虚拟 DOM 等等，所以文件大小和执行时间都更大更长。**我们在查看例子的时候，把网络调成 "Fast 3G" 或者 "Slow 3G" 能够稍微真实一些。**
 
@@ -241,7 +241,7 @@ if (window.STYLE_READY) {
 
 ## 修改后的效果
 
-修改后的代码在[这里](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html)，而访问地址是 [https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html](https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html)。（为了简便，我省去了处理兼容性的代码，即 `<noscript>` 和 preload polyfill）
+修改后的代码在 [这里](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html)，访问地址在 [这里](https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html)。（为了简便，我省去了处理兼容性的代码，即 `<noscript>` 和 preload polyfill）
 
 Performance 截图如下：（依然采用了 "Fast 3G" 的网络设置）
 
@@ -253,9 +253,11 @@ Performance 截图如下：（依然采用了 "Fast 3G" 的网络设置）
 
 ## 后记
 
-这个优化点最早由我的前同事 [xiaop 同学](https://xiaoiver.github.io/) 在开发 Lavas 的 SPA 模板中发现并完成的，ISSUE 记录[在此](https://github.com/lavas-project/lavas/issues/73)。我在他的基础上，做了一个分离 Lavas 环境并且更直白的例子，让截图也尽可能简单，方便阅读。但在此还是非常感谢他的工作！
+这个优化点最早由我的前同事 [xiaop 同学](https://xiaoiver.github.io/) 在开发 Lavas 的 SPA 模板中发现并完成的，ISSUE 记录[在此](https://github.com/lavas-project/lavas/issues/73)。我在他的基础上，做了一个分离 Lavas 和 Vue 环境并且更直白的例子，让截图也尽可能简单，方便阅读。在此非常感谢他的工作！
 
 ## 参考文章
+
+* [让骨架屏更快渲染](https://zhuanlan.zhihu.com/p/34550387) - xiaop 同学原作
 
 * [Loading CSS without blocking render](https://keithclark.co.uk/articles/loading-css-without-blocking-render/) - 使用修改 `media` 的方式达成目的。
 
