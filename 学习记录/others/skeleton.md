@@ -80,6 +80,7 @@
                     // styles
                 }
             </style>
+            <!-- 声明 meta 或者引入其他 CSS -->
         </head>
         <body>
             <div id="app">
@@ -87,6 +88,7 @@
                     <img src="data:image/svg+xml;base64,XXXXXX">
                 </div>
             </div>
+            <!-- 引用 JS -->
         </body>
     </html>
     ```
@@ -122,4 +124,139 @@
 
     页面实际内容的样式表，不包含骨架屏的样式。
 
-代码的三个文件各司其职，配合上面的实现思路，应该还是很好理解的。
+代码的三个文件各司其职，配合上面的实现思路，应该还是很好理解的。可以在[https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/normal/index.html](https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/normal/index.html) 查看效果。
+
+因为这个示例的逻辑太过简单，而实际的前端渲染框架复杂得多，包含的功能也不单纯是渲染，还有状态管理，路由管理，虚拟 DOM 等等，所以文件大小和执行时间都更大更长。**我们在查看例子的时候，把网络调成 "Fast 3G" 或者 "Slow 3G" 能够稍微真实一些。**
+
+但匪夷所思的是，对着这个地址刷新试几次，我也基本看不到骨架屏（骨架屏的内容是一个居中的蓝色方形图片，外加一条白色横线反复侧滑的高亮动画）。是我们的实现思路有问题吗？
+
+## 浏览器的奥秘：减少重排
+
+为了排除肉眼的遗漏和干扰，我们用 Chrome Dev Tools 的 Performance 工具来记录刚才发生了什么，截图如下：（截图时的网络设置为 "Fast 3G"）
+
+![normal timeline](http://boscdn.bpc.baidu.com/assets/easonyq/skeleton/skeleton-timeline.png)
+
+我们可以很明显地看到 3 个时间点：
+
+1. HTML 加载完成了。浏览器在解析 HTML 的同时，发现了它需要引用的 2 个外部资源 `index.js` 和 `index.css`，于是发送网络请求去获取。
+
+2. 获取成功后，执行 JS 并注册 CSS 的规则。
+
+3. JS 一执行，很自然的渲染出了实际的内容，并应用了样式规则（随机颜色的横条）。
+
+我们的骨架屏呢？按照预想，骨架屏应该出现在 1 和 2 之间，也就是在获取 JS 和 CSS 的同时，就应该渲染骨架屏了。这也是我们当时把骨架屏的 HTML 注入到 `index.html`， 还把 CSS 从 `index.css` 中分离出来的良苦用心，然而浏览器并不买账。
+
+这其实和浏览器的渲染顺序有关。
+
+相信大家都整理过行李箱。我们在整理行李箱时，会根据每个行李的大小合理安排，大的和小的配合，填满一层再放上面一层。现在突然有人跑来跟你说，你的电脑不用带了，你要多带两件衣服，你不能带那么多瓶矿泉水。除了想打他之外，为了重新整理行李箱，必然需要把整理好的行李拿出来再重新放。在浏览器中这个过程叫做重排 (reflow)，而那个馊主意就是新加载的 CSS。显而易见，重排的开销是很大的。
+
+熟能生巧，箱子理多了，就能想出解决办法。既然每个 CSS 文件加载都可能触发重绘，那我能不能等所有 CSS 加载完了一起渲染呢？正是基于这一点，浏览器会等 HTML 中所有的 CSS 都加载完，注册完，一起应用样式，力求一次排列完成工作，不要反复重排。看起来浏览器的设计者经常出差，因为这是一个很正确的优化思路，但应用在骨架屏上就出了问题。
+
+我们为了尽早展现骨架屏，把骨架屏的样式从 `index.css` 分离出来。但浏览器不知道，它以为骨架屏的 HTML 还依赖 `index.css`，所以必须等它加载完。而它加载完之后，`render.js` 也差不多加载完开始执行了，于是骨架屏的 HTML 又被替换了，自然就看不到了。而且在等待 JS, CSS 加载的时候依然是个白屏，骨架屏的效果大打折扣。
+
+所以我们要做的是告诉浏览器，你放心大胆的先画骨架屏，它和后面的 `index.css` 是无关的。那怎么告诉它呢？
+
+## 告诉浏览器先渲染骨架屏
+
+我们在引用 CSS 时，会使用 `<link rel="stylesheet" href="xxxx>` 这样的语法。但实际上，浏览器还提供了其他一些机制确保（后续）页面的性能，我们称之为 preload，中文叫预加载。具体来说，使用 `<link rel="preload" href="xxxx">`，提前把后续要使用的资源先声明一下。在浏览器空闲的时候会提前加载并放入缓存。之后再使用就可以节省一个网络请求。
+
+这看似无关的技术，在这里将起到很大的作用，因为 **预加载的资源是不会影响当前页面的**。
+
+我们可以通过这种方式，告诉浏览器：先不要管 `index.css`，直接画骨架屏。之后 `index.css` 加载回来之后，再应用这个样式。具体来说代码如下：
+
+```html
+<link rel="preload" href="index.css" as="style" onload="this.rel='stylesheet'">
+```
+
+方法的核心是通过改变 `rel` 可以让浏览器重新界定 `<link>` 标签的角色，从预加载变成当页样式。（另外也有文章采用修改 `media` 的方法，但浏览器支持度较低，这里不作展开了。我把文章列在最后了）这样的话，浏览器在 CSS 尚未获取完成时，会先渲染骨架屏（因为此时的 CSS 还是 `preload`，也就是后续使用的，并不妨碍当前页面）。而当 CSS 加载完成并修改了自己的 `rel` 之后，浏览器重新应用样式，目的达成。
+
+## 不得不考虑的注意点
+
+事实上，并不是把 `rel="stylesheet"` 改成 `rel="preload"` 就完事儿了。在真正应用到生产环境之前，我们还有很多事情要考虑。
+
+### 兼容性考虑
+
+首先，在 `<link>` 内部我们使用了 `onload`，也就是使用了 JS。为了应对用户的浏览器没有开启脚本功能的情况，我们需要添加一个 fallback
+
+```html
+<noscript><link rel="stylesheet" href="index.css"></noscript>
+```
+
+其次，`rel="preload"` 并不是没有兼容性问题。对于不支持 preload 的浏览器，我们可以添加一些 [polyfill 代码](https://github.com/filamentgroup/loadCSS/blob/master/src/cssrelpreload.js)（来使所有浏览器获得一致的效果。
+
+```html
+<script>
+/*! loadCSS rel=preload polyfill. [c]2017 Filament Group, Inc. MIT License */
+(function(){ ... }());
+</script>
+```
+
+polyfill 的压缩代码可以参见 Lavas 的 SPA 模板[第 29 行](https://github.com/lavas-project/lavas-template-vue/blob/release-basic/core/spa.html.tmpl#L29)。
+
+### 加载顺序
+
+不同于传统页面，我们的实际 DOM 是通过 `render.js` 生成的。所以如果 JS 先于 CSS 执行，那将会发生跳动。（因为先渲染了实际内容却没有样式，而后样式加载，页面出现很明显的变化）**所以这里我们需要严格控制 CSS 早于渲染。**
+
+```html
+<link rel="preload" href="index.css" as="style" onload="this.rel='stylesheet';window.STYLE_READY=true;window.mountApp && window.mountApp()">
+```
+
+JS 对外暴露一个 `mountApp` 方法用于渲染页面（其实是模拟 Vue 的 `mount`）
+
+```javascript
+// render.js
+
+function mountApp() {
+    // 方法内部就是把实际内容添加到 <body> 上面
+}
+
+// 本来直接调用方法完成渲染
+// mountApp()
+
+// 改成挂到 window 由 CSS 来调用
+window.mountApp = mountApp()
+// 如果 JS 晚于 CSS 加载完成，那直接执行渲染。
+if (window.STYLE_READY) {
+    mountApp()
+}
+```
+
+如果 CSS 更快加载完成，那么通过设置 `window.STYLE_READY` 允许 JS 加载完成后直接执行；而如果 JS 更快，则先不自己执行，而是把机会留给 CSS 的 `onload`。
+
+### 清空 onload
+
+[loadCSS](https://github.com/filamentgroup/loadCSS) 的开发者提出，某些浏览器会在 `rel` 改变时重新出发 `onload`，导致后面的逻辑走了两次。为了消除这个影响，我们再在 `onload` 里面添加一句 `this.onload=null`。
+
+### 最终的 CSS 引用方式
+
+```html
+<link rel="preload" href="index.css" as="style" onload="this.onload=null;this.rel='stylesheet';window.STYLE_READY=true;window.mountApp && window.mountApp()">
+
+<!-- 为了方便阅读，折行重复一遍 -->
+<!-- this.onload=null -->
+<!-- this.rel='stylesheet' -->
+<!-- window.STYLE_READY=true -->
+<!-- window.mountApp && window.mountApp() -->
+```
+
+## 修改后的效果
+
+修改后的代码在[这里](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html)，而访问地址是 [https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html](https://easonyq.github.io/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/demo/skeleton/preload/index.html)。（为了简便，我省去了处理兼容性的代码，即 `<noscript>` 和 preload polyfill）
+
+Performance 截图如下：（依然采用了 "Fast 3G" 的网络设置）
+
+![preload timeline](http://boscdn.bpc.baidu.com/assets/easonyq/skeleton/skeleton-timeline-after.png)
+
+这次在 `render.js` 和 `index.css` 还在加载的时候页面已经呈现出骨架屏的内容，实际肉眼也可以观测到。在截图的情况下，骨架屏的展现大约持续了 300ms，占据整个网络请求的大约一半时间。
+
+至于说为什么不是 HTML 加载完成立马展现骨架屏，而是还要等大约 300ms 才展现，从图上看是浏览器 ParseHTML 所花费的时间，可能在 Dev Tools 打开的情况下耗时明显了一些，但可优化空间已经不大。（可能简化骨架屏的结构能起作用）
+
+## 后记
+
+这个优化点最早由我的前同事 [xiaop 同学](https://xiaoiver.github.io/) 在开发 Lavas 的 SPA 模板中发现并完成的，ISSUE 记录[在此](https://github.com/lavas-project/lavas/issues/73)。我在他的基础上，做了一个分离 Lavas 环境并且更直白的例子，让截图也尽可能简单，方便阅读。但在此还是非常感谢他的工作！
+
+## 参考文章
+
+* [Loading CSS without blocking render](https://keithclark.co.uk/articles/loading-css-without-blocking-render/) - 使用修改 `media` 的方式达成目的。
+
+* [filamentgroup/loadCSS](https://github.com/filamentgroup/loadCSS) - 同样使用修改 `rel` 的方式，并提供了 preload polyfill
