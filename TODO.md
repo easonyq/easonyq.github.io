@@ -11,9 +11,11 @@
 * flutter
   [咸鱼的知乎](https://www.zhihu.com/collection/253384895)
 
-===
+------
 
-一些可能有用的数据
+一些可能有用的记录
+
+* [页面和 SW 互相通讯的方法](http://craig-russell.co.uk/2016/01/29/service-worker-messaging.html#.W-KTZtUzbRY)
 
 * PWA 的实际收益 （数据截止 2017 年，来自国外网站）
     * Twitter
@@ -35,7 +37,7 @@
 
     * 数据来自 [https://www.pwastats.com](https://www.pwastats.com)
 
-===
+------
 
 阅读过的书目列表
 

@@ -22,3 +22,6 @@
 
 * [数据劫持 OR 数据代理](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/js/%E6%95%B0%E6%8D%AE%E5%8A%AB%E6%8C%81.md)
   * [知乎链接](https://zhuanlan.zhihu.com/p/47041290)
+
+* [如何让你的网页“看起来”展现地更快 —— 骨架屏二三事](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/others/skeleton.md)
+  * [知乎链接](https://zhuanlan.zhihu.com/p/48601348)
