@@ -2,7 +2,7 @@
 
 > Service Worker 以其 **异步安装** 和 **持续运行** 两个特点，决定了针对它的更新操作必须非常谨慎小心。因为它具有拦截并处理网络请求的能力，因此必须做到网页(主要是发出去的请求)和 Service Worker 版本一致才行，否则就会导致新版本的 Service Worker 处理旧版本的网页，或者一个网页先后由两个版本的 Service Worker 控制引发种种问题。
 
-经过近 2 年的发展，PWA 在 WEB 圈的知名度已经大大提升，即便你没用过可能也至少听说过。其中 Service Worker （以下简称 SW）又是 PWA 中最复杂最核心的部分，其中涉及的主要有 Caches API (`caches.put`, `caches.addAll` 等), Service Worker API (`self.addEventListener`, `self.skipWaiting` 等) 和 Registration API (`reg.installing`, `reg.onupdatefound` 等)。
+经过近 2 年的发展，PWA 在 WEB 圈的知名度已经大大提升，即便你没用过可能也至少听说过。Service Worker （以下简称 SW）是 PWA 中最复杂最核心的部分，其中涉及的主要有 Caches API (`caches.put`, `caches.addAll` 等), Service Worker API (`self.addEventListener`, `self.skipWaiting` 等) 和 Registration API (`reg.installing`, `reg.onupdatefound` 等)。
 
 本文不再科普 SW 的基础，我主要想在这里谈一谈 SW 的更新问题。需要做到 SW 和页面的完全同步，其实并不容易。在此之前，我假设你已经了解了：
 
@@ -24,11 +24,11 @@
 
 2. 为了提升速度或者离线可用，这个 `service-worker.v1.js` 会把 `index.html` 缓存起来。
 
-3. 某次升级更新之后，现在 `index.html` 需要配上 `service-worker.v2.js` 使用了，所以底下的 `<script>` 中修改了注册的地址。
+3. 某次升级更新之后，现在 `index.html` 需要配上 `service-worker.v2.js` 使用了，所以源码中底下的 `<script>` 中修改了注册的地址。
 
-4. 但我们发现，用户访问站点时由于旧版 `service-worker.v1.js` 的作用，从缓存中取出的 `index.html` 引用的依然是 `v1`，并不是我们升级后引用 `v2` 的 `index.html`。
+4. 但我们发现，用户访问站点时由于旧版 `service-worker.v1.js` 的作用，从缓存中取出的 `index.html` 引用的依然是 `v1`，并不是我们升级后引用 `v2`。
 
-之所以出现这种情况，是因为我们要把 `v1` 升级为 `v2` 依赖于 `index.html` 的变化；但它本身却被缓存了起来。一旦到达这种窘境，除非用户手动清除缓存，卸载 `v1`，否则我们无能为力。
+之所以出现这种情况，是因为把 `v1` 升级为 `v2` 依赖于 `index.html` 引用地址的变化，但它本身却被缓存了起来。一旦到达这种窘境，除非用户手动清除缓存，卸载 `v1`，否则我们无能为力。
 
 **所以 `service-worker.js` 必须使用相同的名字，不能在文件名上加上任何会改变的因素。**
 
@@ -40,11 +40,11 @@
 
 注册 SW 是通过 `navigator.serviceWorker.register(swUrl, options)` 方法进行的。但和普通的 JS 代码不同，这句执行在浏览器看来其实有两种不同的情况：
 
-* 如果目前尚未有 SW 安装，那就直接安装。
+* 如果目前尚未有活跃的 SW ，那就直接安装并激活。
 
 * 如果已有 SW 安装着，向新的 `swUrl` 发起请求，获取内容和和已有的 SW 比较。如没有差别，则结束安装。如有差别，则安装新版本的 SW（执行 `install` 阶段），之后令其等待（进入 `waiting` 阶段）
 
-此时浏览器会有两个 SW，但状态不同，如下图：
+此时当前页面会有两个 SW，但状态不同，如下图：
 
 ![两个 SW 同时存在](http://boscdn.bpc.baidu.com/assets/easonyq/sw-update/2SW.png)
 
@@ -85,7 +85,7 @@ self.addEventListener('install', event => {
 
 ## 方法二：skipWaiting + 刷新
 
-方法一的问题在于，skipWaiting 之后导致一个页面先后被两个 SW 控制。那既然已经安装了新的 SW，则表示老的 SW 已经过时，因此可以判断使用老的 SW 处理过的页面也已经过时。我们要做的是让页面从头到尾都让新的 SW 处理，就能够保持一致，也能达成我们的需求了。所以我们想到了刷新。
+方法一的问题在于，skipWaiting 之后导致一个页面先后被两个 SW 控制。那既然已经安装了新的 SW，则表示老的 SW 已经过时，因此可以推断使用老的 SW 处理过的页面也已经过时。我们要做的是让页面从头到尾都让新的 SW 处理，就能够保持一致，也能达成我们的需求了。所以我们想到了刷新，废弃掉已经被处理过的页面。
 
 在注册 SW 的地方（而不是 SW 里面）可以通过监听 `controllerchange` 事件来得知控制当前页面的 SW 是否发生了变化，如下：
 
@@ -95,7 +95,7 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 })
 ```
 
-当发现控制自己的 SW 已经发生了变化，那就刷新自己，让自己从头到尾都被新的 SW 控制，就一定能保证数据的一致性。道理是对，但突然的更新会打断用户的操作，可能会引发不适。刷新的源头在于 SW 的变更；SW 的变更又来源于浏览器安装新的 SW 碰上了 `skipWaiting`，所以这次刷新绝大部分情况会发生在加载页面后的几秒内。用户刚开始浏览内容或者填写信息就遇上了莫名的刷新，我们只能为用户表示遗憾。
+当发现控制自己的 SW 已经发生了变化，那就刷新自己，让自己从头到尾都被新的 SW 控制，就一定能保证数据的一致性。道理是对，但突然的更新会打断用户的操作，可能会引发不适。刷新的源头在于 SW 的变更；SW 的变更又来源于浏览器安装新的 SW 碰上了 `skipWaiting`，所以这次刷新绝大部分情况会发生在加载页面后的几秒内。用户刚开始浏览内容或者填写信息就遇上了莫名的刷新，可能会砸键盘。
 
 另外这里还有两个注意点：
 
@@ -103,9 +103,9 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 在讲到 SW 的 waiting 状态时，我曾经说过 **简单的切换页面或者刷新是不能使得 SW 进行更新的**，而这里又一次牵涉到了 SW 的更新和页面的刷新，不免产生混淆。
 
-我们简单理清一下逻辑，其实也不复杂：
+我们简单理一下逻辑，其实也不复杂：
 
-1. 刷新不能使得 SW 发生更新，即老的 SW 退出，新的 SW 激活。
+1. 刷新不能使得 SW 发生更新，即老的 SW 不会退出，新的 SW 也不会激活。
 
 2. 这个方法是通过 `skipWaiting` 迫使 SW 新老交替。在交替完成后，通过 `controllerchange` 监听到变化再执行刷新。
 
@@ -134,11 +134,11 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 1. 浏览器检测到存在新的（不同的）SW 时，安装并让它等待，同时触发 `updatefound` 事件
 
-2. 我们监听事件，弹出一个提示条，询问用户是不是要刷新页面
+2. 我们监听事件，弹出一个提示条，询问用户是不是要更新 SW
 
   ![提示条](http://boscdn.bpc.baidu.com/assets/easonyq/sw-update/update-banner.png)
 
-3. 如果用户点击，则通知处在等待的 SW 要求其执行 `skipWaiting` 并取得控制权
+3. 如果用户确认，则向处在等待的 SW 发送消息，要求其执行 `skipWaiting` 并取得控制权
 
 4. 因为 SW 的变化触发 `controllerchange` 事件，我们在这个事件的回调中刷新页面即可
 
@@ -180,7 +180,7 @@ if ('serviceWorker' in navigator) {
 }
 ```
 
-这里我们通过发送一个事件 (名为 `sw.update`，位于 `emitUpdate()` 方法内) 来通知外部，这是因为提示条是一个单独的组件，不方便在这里直接展现。当然如果你的应用有不同的结构，也可以自行修改，总之想办法通知提示条，或者单纯使用 `confirm` 通知用户即可。
+这里我们通过发送一个事件 (名为 `sw.update`，位于 `emitUpdate()` 方法内) 来通知外部，这是因为提示条是一个单独的组件，不方便在这里直接展现。当然如果你的应用有不同的结构，也可以自行修改。总之想办法展示提示条，或者单纯使用 `confirm` 让用户确认即可。
 
 第 3 步需要处理用户点击，并和 SW 进行通讯。处理点击的代码比较简单，就不重复了，这里主要列出和 SW 的通讯代码：
 
@@ -210,17 +210,17 @@ self.addEventListener('message', event => {
 
 ## 方法三的弊端
 
-从运行结果上看，这个方法兼顾了快速更新和用户体验，是当前最完美的解决方案。但它也有弊端。
+从运行结果上看，这个方法兼顾了快速更新和用户体验，是当前最好的解决方案。但它也有弊端。
 
 ### 弊端一：过于复杂
 
-* 在文件数量方面，涉及到至少 2 个文件（注册 SW，监听 `updatefound` 和处理 DOM 的展现和点击在普通的 JS 中，监听信息并执行 `skipWaiting` 是在 SW 的代码中），这还不算我们可能为了代码的模块分离，把 DOM 和注册分开
+* 在文件数量方面，涉及到至少 2 个文件（注册 SW，监听 `updatefound` 和处理 DOM 的展现和点击在普通的 JS 中，监听信息并执行 `skipWaiting` 是在 SW 的代码中），这还不算我们可能为了代码的模块分离，把 DOM 的展现点击和 SW 的注册分成两个文件
 
-* 在 API 种类方面，涉及到 Registration API（注册和监听 `updatefound` 时使用），SW 生命周期和 API（`skipWaiting`）以及普通的 DOM API
+* 在 API 种类方面，涉及到 Registration API（注册，监听 `updatefound` 和发送消息时使用），SW 生命周期和 API（`skipWaiting`）以及普通的 DOM API
 
 * 测试和 DEBUG 方法复杂，至少需要制造新老 2 个版本 SW 的环境，并且熟练掌握 SW 的 DEBUG 方式。
 
-尤其是为了达成从用户点击后的插队，需要从 DOM 点击响应，到发送消息给 SW，再到 SW 里面操作，这一串操作横跨两个 JS，非常不直观&复杂。为此已有 Google 大佬 Jake Archibald 向 W3C 提出[建议](https://github.com/w3c/ServiceWorker/issues/1016)，简化这个过程，允许在普通的 JS 中通过 `reg.waiting.skipWaiting()` 直接插队，而不是只能在 SW 内部操作。
+尤其是为了达成用户点击后的 SW “插队”，需要从 DOM 点击响应，到发送消息给 SW，再到 SW 里面操作。这一串操作横跨好几个 JS，非常不直观且复杂。为此已有 Google 大佬 Jake Archibald 向 W3C 提出[建议](https://github.com/w3c/ServiceWorker/issues/1016)，简化这个过程，允许在普通的 JS 中通过 `reg.waiting.skipWaiting()` 直接插队，而不是只能在 SW 内部操作。
 
 ### 弊端二：必须通过 JS 完成更新
 
@@ -230,10 +230,14 @@ self.addEventListener('message', event => {
 
 唯一可行的优化是当 SW 控制的页面仅存在一个 Tab 时，刷新这个 Tab 如果能够更新 SW，也能给我们省去不少操作，也不会带来交叉控制的问题。只是这样可能加重了浏览器的判断成本，也丧失了操作一致性的美感，只能说这可能也是一个久远的梦想了。
 
+## 总结
+
+SW 的功能相当强大，但同时涉及的 API 也相对较多，是一个需要投入相当学习成本的强力技术。SW 的更新对使用 SW 的站点来说非常重要，但如上所述，其更新方案也相对复杂，远远超过了其他常用前端技术的复杂度（例如普通 JS 以页面为单位，并不持续运行，所以也没有更新的必要）。不过 SW 从其起步至今也不过两三年的时间，尚处在发展期。相信通过 W3C 的不断修正以及前端圈的持续使用，会有更加简洁，更加自动，更加完备的方案出现，届时我们可能就能像使用 DOM API 那样使用 SW 了。
+
 ## 参考文章
 
 * [有关 Service Worker 更新的两点改进](https://github.com/lavas-project/lavas/issues/212) - 编写本文的源头
 
-* [服务工作线程生命周期](https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle) - 来自 Google Developers 的 Service Worker 科普文章
+* [The Service Worker Lifecycle](https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle) - 来自 Google Developers 的 Service Worker 科普文章之一
 
 * [How to Fix the Refresh Button When Using Service Workers](https://redfin.engineering/how-to-fix-the-refresh-button-when-using-service-workers-a8e27af6df68) - 提及了第四种方法，不过在 Firefox 中仍有兼容性问题
