@@ -25,3 +25,6 @@
 
 * [如何让你的网页“看起来”展现地更快 —— 骨架屏二三事](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/others/skeleton.md)
   * [知乎链接](https://zhuanlan.zhihu.com/p/48601348)
+
+* [谨慎处理 Service Worker 的更新](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/pwa/%E8%B0%A8%E6%85%8E%E5%A4%84%E7%90%86%20Service%20Worker%20%E7%9A%84%E6%9B%B4%E6%96%B0.md)
+  * [知乎链接](https://zhuanlan.zhihu.com/p/51118741)
