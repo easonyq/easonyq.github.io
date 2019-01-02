@@ -2,7 +2,7 @@
 
 ## webpack 大法好
 
-Webpack 是大家熟知的前端开发利器，它可以搭建包含热更新的开发环境，也可以生成压缩后的生产环境代码，还拥有灵活的扩展性和丰富的生态环境。但它的缺点也非常明显，那就是配置项又多又复杂，随便拿出某一个配置项（例如 `rules`， `plugins`， `devtool`等等）都够写上一篇文章来说明它的 N 种用法，对新手造成极大的困扰。Vue.js（以下简称 Vue）绝大部分情况使用 webpack 进行构建，间接地把这个问题丢给了 Vue 的新手们。不过不论是 Vue 还是 webpack，其实都知道配置问题的症结所在，因此他们也想了各自的办法来解决这个问题，我们先看看他们的努力。
+Webpack 是大家熟知的前端开发利器，它可以搭建包含热更新的开发环境，也可以生成压缩后的生产环境代码，还拥有灵活的扩展性和丰富的生态环境。但它的缺点也非常明显，那就是配置项又多又复杂，随便拿出某一个配置项（例如 `rules`， `plugins`， `devtool`等等）都够写上一篇文章来说明它的 N 种用法，对新手造成极大的困扰。Vue.js（以下简称 Vue）绝大部分情况使用 webpack 进行构建，间接地把这个问题丢给了 Vue 的新手们。不过不论是 Vue 还是 webpack，其实他们都知道配置问题的症结所在，因此他们也想了各自的办法来解决这个问题，我们先看看他们的努力。
 
 ### Vue cli 2.x - 提供开箱即用的配置
 
@@ -22,7 +22,7 @@ webpack 4 推出也有一年左右了，它的核心改动之一是极大地简�
 
 ### Vue cli 3.x - 升级 webpack，还搞出了插件
 
-大约小半年前，Vue cli 退出了 v3 版本，也是一个颠覆性的升级。它把核心精简为 `@vue/cli`，把 webpack 搞成了 `@vue/cli-service`, 把其他东西抽象为“插件”。这些插件包括 babel, eslint, Vuex, Unit Testing 等等，还允许自定义编写和发布。我不在这里介绍 Vue cli 3.x 的用法和生态，但从结果看，现在通过 `vue create` 创建的的 Vue 项目清爽了不少。
+大约小半年前，Vue cli 推出了 v3 版本，也是一个颠覆性的升级。它把核心精简为 `@vue/cli`，把 webpack 搞成了 `@vue/cli-service`, 把其他东西抽象为“插件”。这些插件包括 babel, eslint, Vuex, Unit Testing 等等，还允许自定义编写和发布。我不在这里介绍 Vue cli 3.x 的用法和生态，但从结果看，现在通过 `vue create` 创建的的 Vue 项目清爽了不少。
 
 ![Vue cli 3 目录](http://boscdn.bpc.baidu.com/assets/easonyq/vue-webpack/vue-cli-3.png)
 
@@ -32,7 +32,7 @@ webpack 4 推出也有一年左右了，它的核心改动之一是极大地简�
 
 抛开 Vue，此类需求 webpack 本身其实是支持的。因为它除了提供 webpack-dev-server 之外，还提供了 webpack-dev-middleware。它以 express middleware 的方式，同样集成了热加载的功能。因此如果我们的 nodejs 使用的是 express 作为服务框架的话，我们可以以 `app.use` 的方式引入这个中间件，就可以达成两者的融合了。
 
-再说回 Vue cli 3。它通过 `vue-cli-service` 命令，把 webpack 和 webpack-dev-server 包裹起来，这样用户就看不到配置文件了，达成了简洁的目的。不过实质上，配置文件依然存在，只是移动到了 `node_modules/@vue/cli-service/webpack.config.js` 而已。当然为了支持修改，它也支持通过配置对象 (`configureWebpack`) 或者链式调用 (`chainWebpack`) 两种间接的方式，但不再提供直接修改配置文件的方式了。
+再说回 Vue cli 3。它通过 `vue-cli-service` 命令，把 webpack 和 webpack-dev-server 包裹起来，这样用户就看不到配置文件了，达成了简洁的目的。不过实质上，配置文件依然存在，只是移动到了 `node_modules/@vue/cli-service/webpack.config.js` 而已。当然为了个性化需求，它也支持用户通过配置对象 (`configureWebpack`) 或者链式调用 (`chainWebpack`) 两种间接的方式，但不再提供直接修改配置文件的方式了。
 
 然而致命的是，即便它提供了足够的方式修改配置，**但它不能把 webpack-dev-server 变成 webpack-dev-middleware**。这表示使用 Vue cli 3 创建的 Vue 部分和 nodejs(express) 部分是不能融合的。
 
@@ -66,27 +66,29 @@ Vue 没什么好多说的，就一个版本，不存在 express / koa / 其他�
 
 除了红框中的 vue 目录外，其他都是 nodejs 的代码。而且因为我只是做个示意，所以 nodejs 代码其实也仅仅包含两个 index.js，public 目录和两个 package.json。实际的 nodejs 项目应该会有更多的代码，例如 actions（把每个路由处理单独到一个目录），middlewares（过所有路由的中间件）等等。
 
-这个安排的思路是认为前端是后端的一部分，所以单独放在一个目录里面。**我采用的就是这种结构。**
+这个安排的思路是认为前端是整个项目的一部分（页面展示部分），所以 Vue 单独放在一个目录里面。**我采用的就是这种结构。**
 
 ### 前端项目为基础，后端项目为子目录
 
 ![](http://boscdn.bpc.baidu.com/assets/easonyq/vue-webpack/koa-inside-vue.png)
 
-这就和前面一种相反，红框中的是后端代码。这么安排的理由可能是因为我们是前端开发者，所以把前端代码位于基础位置。
+这就和前面一种相反，红框中的是后端代码。这么安排的理由可能是因为我们是前端开发者，所以把前端代码位于基础位置，后端提供的 API 辅助 Vue 的代码运行。
 
 ### 中立，不偏向任何人
 
 ![](http://boscdn.bpc.baidu.com/assets/easonyq/vue-webpack/vue-and-koa.png)
 
-看了前面两种，自然能想到这第三种办法。不过我认为这种办法纯粹没事儿找事儿，因为根据 npm 的特性，两个 package.json 是必须放在根目录的，所以实际上想把两者完全分离并公平对待，实质上是弊大于利的，适合强迫症患者。
+看了前面两种，自然能想到这第三种办法。不过我认为这种办法纯粹没事儿找事儿，因为根据 npm 的要求，package.json 是必须放在根目录的，所以实际上想把两者完全分离并公平对待是弊大于利的（例如各类调用路径都会多几层），适合强迫症患者。
 
 ## 改造 Vue 部分
 
 Vue 部分的改造点主要是：
 
-1. package.json 融合到根目录（nodejs) 的 package.json 里面去。这里主要包括依赖 （`dependency` 和 `devDependency`）以及执行命令（`scripts`）两部分。其余的如 `browserslist`, `engine` 等 babel 可能用到的字段因为 nodejs 没有，所以可以直接复制过去，不存在融合。
+1. package.json 融合到根目录（nodejs) 的 package.json 里面去。这里主要包括依赖 （`dependency` 和 `devDependency`）以及执行命令（`scripts`）两部分。其余的如 `browserslist`, `engine` 等 babel 可能用到的字段，因为 nodejs 代码不需要 babel，所以可以直接复制过去，不存在融合。
 
 2. 编写 `webpack.config.js`。（因为 Vue cli 3 是自动生成且隐藏的，这个就需要自己写）
+
+下面详细来看。
 
 ### 融合 package.json
 
@@ -94,7 +96,7 @@ Vue 部分的改造点主要是：
 
 依赖方面，其实前后端共用的依赖也基本不存在，所以实际上也是一个简单的复制。需要注意的是类似 `vue`, `vue-router`, `webpack`, `webpack-cli` 等等都是 `devDependency`，而不是 `dependency`。真正需要放到 `dependency` 的，其实只有 `@babel/runtime` 这一个（因为使用了 `plugin-transform-runtime`)。
 
-命令方面，本身 Vue 必备的是“启动开发环境”和“构建”两条命令（可选的还有测试，这个我这里先不讨论）。因为开发环境需要和 nodejs 融合，所以这条先忽略了，所以剩下的是构建命令。常规操作就是通过设置 `NODE_ENV` 为 `production` 来让 webpack 走入构建分支。另外值得注意的是，因为现在 package.json 和 webpack.config.js 不在同级目录了，所以需要额外指定目录，命令如下：(`cross-env` 是一个相当好用的跨平台设置环境变量的工具)
+命令方面，本身 Vue 必备的是“启动开发环境”和“构建”两条命令（可选的还有测试，这个我这里先不讨论）。因为开发环境需要和 nodejs 融合，所以这条我们放到 nodejs 部分说。剩下的是构建命令，常规操作是通过设置 `NODE_ENV` 为 `production` 来让 webpack 走入线上构建的情况。另外值得注意的是，因为现在 package.json 和 webpack.config.js 不在同级目录了，所以需要额外指定目录，命令如下：(`cross-env` 是一个相当好用的跨平台设置环境变量的工具)
 
 ```javascript
 {
@@ -150,7 +152,7 @@ module.exports = {
 
 #### resolve
 
-主要定义两个东西：webpack 处理 `import` 时自动添加的后缀顺序和别名。
+主要定义两个东西：webpack 处理 `import` 时自动添加的后缀顺序和供快速访问的别名。
 
 ```javascript
 {
@@ -164,7 +166,7 @@ module.exports = {
 }
 ```
 
-#### module
+#### module（重点）
 
 `module` 在 webpack 中主要确定如何处理项目中不同类型的模块。我们这里采用最常用的配法，即告诉 webpack，什么样的后缀文件用什么样的 loader 来处理。
 
@@ -207,17 +209,17 @@ module.exports = {
 
 1. `/\.vue$/`
 
-    处理 Vue 文件，使用 Vue 专门提供的 `vue-loader`。这个处理器做的事情就是**把 Vue 里面的 `<script>` 和 `<style`> 的部分独立出来，让它们可以继续由下面的 rules 分别处理**。否则一个 `.vue` 文件是不可能进入 `.js` 或者 `.css` 的处理流程的。另外如果 `<style>` 有 `lang` 属性，也可以转化为例如 `.less`, `.styl` 等其他处理流程。
+    处理 Vue 文件，使用 Vue 专门提供的 `vue-loader`。这个处理器做的事情就是**把 Vue 里面的 `<script>` 和 `<style`> 的部分独立出来，让它们可以继续由下面的 rules 分别处理**。否则一个 `.vue` 文件是不可能进入 `.js` 或者 `.css` 的处理流程的。另外如果 `<style>` 有 `lang` 属性，还可以进入例如 `.less`, `.styl` 等其他处理流程。
 
     它还需要专门的插件 `VueLoaderPlugin()`，之后可以看到，不要漏掉。
 
 2. `/\.js?$/`
 
-    表面上是处理后缀为 `.js` 的文件，但实质上在这里是用来处理 Vue 里面 `<script>` 的内容。在这里我们要做的是使用 `babel-loader` 对代码中的高级写法转译为兼容低版本浏览器的写法。具体转译规则使用 `.babelrc` 文件配置。另外这里还忽略了 `node_modules`（因为其他包在发布时都已经转码过了，不用再处理徒增时间），但是确保 `node_modules` 里的单体 Vue 文件依然参与转译，这也是 [Vue 官方文档](https://vue-loader.vuejs.org/zh/guide/pre-processors.html#%E6%8E%92%E9%99%A4-node-modules) 的推荐写法。
+    表面上是处理后缀为 `.js` 的文件，但实质上在这里也用来处理 Vue 里面 `<script>` 的内容。在这里我们要做的是使用 `babel-loader` 对代码中的高级写法转译为兼容低版本浏览器的写法。具体转译规则使用 `.babelrc` 文件配置。另外这里还忽略了 `node_modules`（因为其他包在发布时都已经转码过了，不用再处理徒增时间）。不过得确保 `node_modules` 里的单体 Vue 文件依然参与转译，这也是 [Vue 官方文档](https://vue-loader.vuejs.org/zh/guide/pre-processors.html#%E6%8E%92%E9%99%A4-node-modules) 的推荐写法。
 
 3. `/\.less$/`
 
-    我的项目中使用 less 作为样式预处理器，因此在每个 Vue 文件都使用了 `<style lang="less">`。这样通过 `vue-loader`，就能让这条规则中配置的 4 个 loader 来处理 Vue 文件中的样式了。这 4 个 loader 分别做的事情是：
+    我的项目中使用 less 作为样式预处理器，因此在每个 Vue 文件都使用了 `<style lang="less">`。这样通过 `vue-loader`，就能让这条规则中配置的几个 loader 来处理 Vue 文件中的样式了。这几个 loader 分别做的事情是：
 
     1. `vue-style-loader`
 
@@ -243,9 +245,9 @@ module.exports = {
 
 4. `/\.css$/`
 
-    和 `.js` 规则相似，这条规则可以同时应用于 `.css` 的后缀文件，以及 Vue 中的 `<style>` （且没有写 `lang` 的）部分。
+    和 `.js` 规则相似，这条规则可以同时应用于 `.css` 的后缀文件以及 Vue 中的 `<style>` （且没有写 `lang` 的）部分。
 
-#### plugins
+#### plugins（重点）
 
 插件和规则类似，也是对加载进入 webpack 的资源进行处理。不过和规则不同，它并不以正则（多数为后缀名）决定是否进入，而是全部进入后通过插件自身的 JS 写法来确定处理哪些，因此更加灵活。
 
@@ -334,7 +336,7 @@ koa 部分需要我们改造的点主要有：
 
     虽然 koa 的路由规则和中间件都可以写在这里，但通常只要是略有规模的项目，都会把路由处理和中间件分别独立成 `actions` 和 `middlewares` 目录分开存放（名字怎么起看自己喜好）。配置文件（例如配置启动端口号）也通常会独立成 `config.js` 或者 `config` 目录。其他的例如 `util` 目录等也都按需建立。
 
-    **我们需要在这里统一前后路由，并使用 wdm等**
+    **我们需要在这里统一前后路由，并使用 wdm 等**
 
 ### package.json
 
@@ -350,7 +352,7 @@ koa 部分需要我们改造的点主要有：
 "nodemon -e js --ignore vue/ index.dev.js"
 ```
 
-它的使用方式也很简单，把 `node index.js` 换成 `nodemon index.js`，他就会监听以这个入口执行的所有文件的变化，并自动重启。但我们这里还额外使用了两个配置项。`-e` 表示指定扩展名，这里我们只监听 js。 `--ignore` 是指定忽略想，因为 `vue/` 目录中有 webpack 帮我们执行热加载，因此它的修改可以忽略。其他可用的配置项可以参考 nodemon 的[主页](https://github.com/remy/nodemon)。
+它的使用方式也很简单，把 `node index.js` 换成 `nodemon index.js`，他就会监听以这个入口执行的所有文件的变化，并自动重启。但我们这里还额外使用了两个配置项。`-e` 表示指定扩展名，这里我们只监听 js。 `--ignore` 指定忽略项，因为 `vue/` 目录中有 webpack 帮我们执行热加载，因此它的修改可以忽略。其他可用的配置项可以参考 nodemon 的[主页](https://github.com/remy/nodemon)。
 
 #### 启动线上环境服务器
 
@@ -456,7 +458,7 @@ koaWebpack({
 
 线上环境和开发环境有两处不同，我们着重讲一下这两个不同点。
 
-首先，线上环境不是用 webpack-dev-middleware (koa-webpack)，因此这部分代码不需要了。
+首先，线上环境不使用 webpack-dev-middleware (koa-webpack)，因此这部分代码不需要了。
 
 其次，因为构建后的 Vue 代码全部位于 vue-dist 目录，而我们需要的 HTML 入口以及其他 JS, CSS文件都在其中，因此我们需要把 vue-dist 目录添加到静态服务中可供访问，另外 history fallback 的目标也有所改变，如下：
 
@@ -488,6 +490,6 @@ app.use(koaStatic('public'));
 
 3. 我们需要改动 `index.js`，处理路由顺序，并在开发环境调用 webpack-dev-middleware
 
-为了简单上手，我把项目中的业务代码抽离，留下了一个骨架，可以作为 Vue + koa 项目的启动模板，放在 [easonyq/vue-nodejs-template](https://github.com/easonyq/vue-nodejs-template)。不过我觉得我们还是应当掌握配置方法和原理，这样以后如果技术栈的某一块发生了变化（例如 webpack 出了 5），我们也能够自己研究修改，而不是每次都以解决任务为最优先，忽略任何细节。
+为了简单上手，我把项目中的业务代码抽离，留下了一个骨架，可以作为 Vue + koa 项目的启动模板，放在 [easonyq/vue-nodejs-template](https://github.com/easonyq/vue-nodejs-template)。不过我觉得我们还是应当掌握配置方法和原理，这样以后如果技术栈的某一块发生了变化（例如 webpack 出了 5），我们也能够自己研究修改，而不是每次都以解决任务为最优先，能跑起来就不管了。
 
-愿与各位共勉！
+愿我们大家在前端道路上都能越走越顺！
