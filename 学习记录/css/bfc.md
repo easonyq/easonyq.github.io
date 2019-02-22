@@ -77,3 +77,28 @@ xxxx yyyyyyyyyyy
 给 y 加上 overflow: hidden 或者 float: left 让它变成 BFC，就可以做到这个效果。
 
 __这个效果在两栏布局时非常有效__，因为比起传统的 position: absolute; left: xxxpx + margin-left: xxxpx 的方式来说，这种方式并不需要知道左栏的宽度（xxx），是真正的自适应。
+
+```html
+<html>
+<head>
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <style>
+    .left {
+        width: 100px;
+        height: 100px;
+        background: yellow;
+        float: left;
+    }
+    .right {
+        background: #eee;
+        height: 200px;
+        /* overflow: hidden; */
+    }
+    </style>
+</head>
+<body>
+    <div class="left"></div>
+    <div class="right"></div>
+</body>
+</html>
+```
