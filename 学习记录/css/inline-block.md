@@ -18,11 +18,11 @@
 
 在默认情况下，当一个 Box 中包含两个 __有宽度的__ 块级子元素时，因为块级元素占满一行，所以即使有宽度，也不会让他们在同一行中，如下：
 
-[block](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095231269-1572459142.png)
+![block](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095231269-1572459142.png)
 
 如果给这两个子元素设置 display: inline-block，就可以让他们在同一行显示
 
-[inline-block](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095240254-1054271047.png)
+![inline-block](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095240254-1054271047.png)
 
 注意两个点：
 1. 实现效果和 float 类似，都能放到一行中
@@ -34,13 +34,13 @@
 
 其次，在多个元素 float 并且高度不一的情况下，会有如下问题：
 
-[float](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095302926-2090422648.png)
+![float](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095302926-2090422648.png)
 
 float 查看是否还能继续往右放，不能就换行放。而换行时并不一定找到最左边，才会出现上图情况。
 
 但如果使用 inline-block，可以做到比较理想的底部对齐的效果
 
-[inline-block](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095312144-2092703645.png)
+![inline-block](https://images2015.cnblogs.com/blog/1144006/201705/1144006-20170513095312144-2092703645.png)
 
 ### inline-block 的空隙
 
