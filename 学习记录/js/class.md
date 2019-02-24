@@ -314,7 +314,18 @@ B.prototype.__proto__ === A.prototype // true
 
 ### 实例
 
-子类实例的__proto__属性的__proto__属性，指向父类实例的__proto__属性。
+最最基础和根本的原则：**实例的 `__proto__` 等于实例构造类的原型链。**
+
+```javascript
+p1.__proto__ === p1.constructor.prototype === Point.prototype; // true
+```
+
+1. 子类实例的 `__proto__` 等于子类构造类的原型链，也就是 `Child.prototype`。
+2. `Child.prototype` 的 `__proto__` 等于父类的原型链，也就是 `Parent.prototype`。
+3. 父类实例的 `__proto__` 等于父类构造类的原型链，也是 `Parent.prototype`。
+
+所以 `child.__proto__.__proto__ === parent.__proto__;` 成立。
+
 
 ```javascript
 let parent = new Parent();
@@ -342,7 +353,7 @@ class A {
 }
 
 A.__proto__ === Function.prototype // true
-A.prototype.__proto__ === Object.prototype // true
+A.prototype.__proto__ === Object.prototype // true， 特殊点
 ```
 
 A 不继承任何父类，他就是个普通函数，所以继承 `Function.prototype`。

@@ -8,8 +8,8 @@ canvas 可以用来绘制图形和处理图片。这里重点介绍图片相关�
 
 * drawImage() 用于将图片绘制在画布中
 * getImageData() 用于获取画布中的图片（像素）信息
-* putImageData() 用于将像素信息写会到画布中成为图片
-* toDataURL() 用于把画图中的内容转成一个 URI 对象。使用 `<img src=xxx>` 可以加载这个图片
+* putImageData() 用于将像素信息写回到画布中成为图片
+* toDataURL() 用于把画布中的内容转成一个 URI 对象。使用 `<img src=xxx>` 可以加载这个图片
 
 每个方法的参数就省略了，详情可以查询 API。每个方法都有多种参数。
 
