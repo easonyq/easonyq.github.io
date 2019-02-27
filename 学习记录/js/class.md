@@ -209,7 +209,7 @@ export default class myClass{
 
 super 有两种用法。第一，在子类的构造函数中，**必须**调用以建立子类的 `this`。
 
-补充说明：ES5 的继承，是先创造子类的实例对象 `this`，然后把父类的方法属性都加上去；ES6 反之，先创造父类的实例对象 `this`，再用子类的构造函数去修改它。所以子类构造函数要先调用 `super`。
+补充说明：ES5 的继承，是先创造子类的实例对象 `this`，然后把父类的方法属性都加上去；ES6 反之，先创造父类的实例对象 `this`，再用子类的构造函数去修改它。所以子类构造函数要先调用 `super`，作用等价于把父类 `constructor` 的代码拿过来执行一遍。
 
 ```javascript
 class ColorPoint extends Point {
