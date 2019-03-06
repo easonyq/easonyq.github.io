@@ -48,7 +48,9 @@ Shadow DOM 的特别之处就在于它致力于创建一个相对独立的一个
 
 我们来看一看浏览器利用 Shadow DOM 实现的一个示例吧，那就是 video 标签：
 
-    <video controls src="./video.mp4"width="400"height="300"></video>
+```html
+<video controls src="./video.mp4"width="400"height="300"></video>
+```
 
 我们来看一下浏览器渲染的结果：
 
@@ -108,7 +110,7 @@ ShadowRoot 是 Shadow DOM 下面的根，你可以把它当做 DOM 中的 `<body
 
 ## HTML Template
 
-有了 ShadowRoot 对象，我们可以通过代码来创建内部结构了，对于简单的结构，也许我们可以直接通过 `document.createElement` 来创建，但是稍微复杂一些的结构，如果全部都这样来创建不仅麻烦，而且代码可读性也很差。当然也可以通过 ES6 提供的反引号字符串（`const template = `......`;`）配合 innerHTML 来构造结构，利用反引号字符串中可以任意换行，并且 HTML 对缩进并不敏感的特性来实现模版，但是这样也是不够优雅，毕竟代码里大段大段的 HTML 字符串并不美观，即便是单独抽出一个常量文件也是一样。
+有了 ShadowRoot 对象，我们可以通过代码来创建内部结构了，对于简单的结构，也许我们可以直接通过 `document.createElement` 来创建，但是稍微复杂一些的结构，如果全部都这样来创建不仅麻烦，而且代码可读性也很差。当然也可以通过 ES6 提供的反引号字符串（`const template = \`......\`;`）配合 innerHTML 来构造结构，利用反引号字符串中可以任意换行，并且 HTML 对缩进并不敏感的特性来实现模版，但是这样也是不够优雅，毕竟代码里大段大段的 HTML 字符串并不美观，即便是单独抽出一个常量文件也是一样。
 
 这个时候就可以请 HTML Template 出场了。我们可以在 html 文档中编写 DOM 结构，然后在 ShadowRoot 中加载过来即可。
 
@@ -118,13 +120,13 @@ HTML Template 实际上就是在 html 中的一个 `<template>` 标签，正常�
 
 通过 document-fragment 对象，就可以访问到 template 内部的节点了，通过 `document.importNode` 方法，可以将 document-fragment 对象创建一份副本，然后可以使用一切 DOM 属性方法替换副本中的模版内容，最终将其插入到 DOM 或是 Shadow DOM 中。
 
-```
+```html
 <div id="div"></div>
 <template id="temp">
   <div id="title"></div>
 </template>
 ```
-```
+```javascript
 const template = document.getElementById('temp');
 const copy = document.importNode(template.content, true);
 copy.getElementById('title').innerHTML = 'Hello World!';
