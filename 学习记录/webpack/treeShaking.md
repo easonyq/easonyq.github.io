@@ -324,7 +324,7 @@ webpack 4 在 package.json 新增了一个配置项叫做 `sideEffects`， 值�
 
 #### concatenateModule
 
-webpack 3 开始加入了 `webpack.optimize.ModuleConcatenateModulePlugin()`，到了 webpack 4 直接作为 `mode = 'production' 的默认配置。这是对 webpack bundle 的一个优化，把本来“每个模块包裹在一个闭包里”的情况，优化成“所有模块都包裹在同一个闭包里”的情况。本身对于代码缩小体积有很大的提升，这里也能侧面解决副作用的问题。
+webpack 3 开始加入了 `webpack.optimize.ModuleConcatenateModulePlugin()`，到了 webpack 4 直接作为 `mode = 'production'` 的默认配置。这是对 webpack bundle 的一个优化，把本来“每个模块包裹在一个闭包里”的情况，优化成“所有模块都包裹在同一个闭包里”的情况。本身对于代码缩小体积有很大的提升，这里也能侧面解决副作用的问题。
 
 依然选取这样 2 个文件作为例子：
 

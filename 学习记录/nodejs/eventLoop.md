@@ -7,7 +7,7 @@ nodejs的事件驱动模型一般要注意下面几个点：
 * 因为是单线程的，所以当回调函数被执行的时候，事件循环是被暂停的
 * 当涉及到I/O操作的时候，nodejs会开一个独立的线程来进行异步I/O操作，操作结束以后将消息压入消息队列。
 
-因此，只有在同步代码执行完成后才会进入异步回调的进行。而多个异步回调的先后顺序如何确定就是事件循环要解决的问题。从这里可以看出，如果主进程代码（同步代码）卡住，异步代码也是不会执行的。时此外事件循环中列出的所有顺序都只针对异步回调。
+因此，只有在同步代码执行完成后才会进入异步回调的进行。而多个异步回调的先后顺序如何确定就是事件循环要解决的问题。从这里可以看出，如果主进程代码（同步代码）卡住，异步代码也是不会执行的。此外事件循环中列出的所有顺序都只针对异步回调。
 
 事件循环机制是使单线程的 JavaScript 支持高性能非阻塞 I/O 操作的原因。当 Node.js 启动的时候就会初始化一个事件循环，并开始执行 js 主代码，这中间可能会产生一些定时器（schedule timers），异步 I/O API调用，或者process.nextTick调用等等， 然后进入事件循环。
 
@@ -100,8 +100,8 @@ setTimeout(() => {
 
 从poll和check阶段的逻辑，我们可以看出setImmediate和setTimeout、setInterval都是在poll 阶段执行完当前的I/O队列中相应的回调函数后触发的。但是这两个函数却是由不同的路径触发的。
 
-* setImmediate函数，是在当前的poll queue对列执行后为空或是执行的数目达到上限后，event loop直接调入check阶段执行setImmediate函数。
-* setTimeout、setInterval则是在当前的poll queue对列执行后为空或是执行的数目达到上限后，event loop去timers检查是否存在已经到期的定时器，如果存在直接执行相应的回调函数。
+* setImmediate函数，是在当前的poll queue队列执行后为空或是执行的数目达到上限后，event loop直接调入check阶段执行setImmediate函数。
+* setTimeout、setInterval则是在当前的poll queue队列执行后为空或是执行的数目达到上限后，event loop去timers检查是否存在已经到期的定时器，如果存在直接执行相应的回调函数。
 
 如果程序中既有setTimeout和setImmediate，两者的执行顺序是什么？
 
@@ -116,7 +116,7 @@ setImmediate(function immediate() {
 });
 ```
 
-上面的程序执行的结果并不是唯一的，有时immediate在前，有时timeout在qian。主要是由于他们运行的当前上下文环境中存在其他的程序影响了他们执行顺序。
+上面的程序执行的结果并不是唯一的，有时immediate在前，有时timeout在前。主要是由于他们运行的当前上下文环境中存在其他的程序影响了他们执行顺序。
 
 ```javascript
 // timeout_vs_immediate.js

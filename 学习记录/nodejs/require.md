@@ -326,4 +326,28 @@ Module.prototype._compile = function(content, filename) {
 });
 ```
 
-总上，模块的加载实质上就是，注入exports、require、module三个全局变量，然后执行模块的源码，然后将模块的 exports 变量的值输出。
+综上，模块的加载实质上就是，注入exports、require、module三个全局变量，然后执行模块的源码，然后将模块的 exports 变量的值输出。
+
+最后补充一个小点：nodejs 中 `exports` 和 `module.exports` 的差别：
+
+1. 如果只设置 `exports`，则最终两者的值会相等，本质还是通过 `module.exports` 输出的。
+2. 如果两者均设置，以 `module.exports` 为准。但这会降低代码可读性，所以最好不要这么写。
+3. 如有多个方法或者属性输出，可以选择 `exports`；而如果是作为一个大对象整体输出，使用 `module.exports`。
+
+例子如下：
+
+```javascript
+exports.sayHello = () => console.log('hello')
+exports.sayBye = () => console.log('bye')
+```
+
+```javascript
+module.exports = {
+  sayHello() {
+    console.log('hello')
+  },
+  sayBye() {
+    console.log('bye')
+  }
+}
+```

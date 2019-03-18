@@ -1,6 +1,7 @@
 # vue-router
 
 [参考链接](https://github.com/DDFE/DDFE-blog/issues/9)
+[参考链接2](https://blog.csdn.net/vv_bug/article/details/82766049)
 
 和主要流程相关的代码主要是 `src` 目录下的 `components`, `history` 目录和 `create-matcher.js`, `create-route-map.js`, `inex.js` 和 `install.js`。
 
@@ -213,7 +214,7 @@ Object.defineProperty(Vue.prototype, '$route', {
 
   展开一下这里的 `transitionTo` 方法，定义在 `src/history/base.js` 中，作用是跳转到某个路由页面。它的步骤是：
 
-  1. 调用 `this.router.match` 方法。在 VueRouter 的构造函数中曾经使用 `this.history = new History(this, options.base` 来实例化 History。而在 History 的构造函数 `constructor(router, base)` 中又设置了 `this.router = router`。因此实际上 `this.router` 指向 VueRouter 的实例。根据 VueRouter 类的定义，`match` 方法内部调用了 `this.matcher.match`，参数为目标路由 `location` 和当前路由 `this.current`，返回目标路由对象。（如果没有找到则创建）
+  1. 调用 `this.router.match` 方法。在 VueRouter 的构造函数中曾经使用 `this.history = new History(this, options.base)` 来实例化 History。而在 History 的构造函数 `constructor(router, base)` 中又设置了 `this.router = router`。因此实际上 `this.router` 指向 VueRouter 的实例。根据 VueRouter 类的定义，`match` 方法内部调用了 `this.matcher.match`，参数为目标路由 `location` 和当前路由 `this.current`，返回目标路由对象。（如果没有找到则创建）
 
     查找时，根据传入的 `location` 上有 `name` 还是 `path`，分别从之前创建的 2 个 MAP 中寻找。不论最终找到与否，都会调用 `_createRoute` 方法进行创建路由对象并返回。创建的代码位于 `src/util/route.js`，其中值得关注的是每一个路由 route 对象都对应有一个 matched 属性，它是一个数组。如果能够匹配到 map 中的某个 RouteRecord，那么数组会把当前 record 添加到最前端，然后继续访问 record 的父亲，直到根。因此最终这个数组是**从根开始**到最终匹配的 record 的数组；如果没有匹配到，那这里就是个空数组。
 
@@ -241,7 +242,7 @@ Object.defineProperty(Vue.prototype, '$route', {
 Vue.util.defineReactive(this, '_route', this._router.history.current)
 ```
 
-首先从 `src/history/base.js` 中看到，`this.current` 是在 `this.updateRoute` 时每次被设定更新的，永远指向当前路由对象。给 `_route` 定义了这么一个响应式的属性值也就意味着如果该属性值发生了变化，就会触发更新机制，继而调用应用实例的 render 重新渲染。而让这个值发生变化的，就是上面最后注册的 `history.listen` 中的 `cb`，也就是那句 `app._route = route`。
+首先从 `src/history/base.js` 中看到，`this.current` 是在 `this.updateRoute` 时每次被设定更新的，永远指向当前路由对象。给 `_route` 定义了这么一个响应式的属性值也就意味着如果该属性值发生了变化，就会触发更新机制，继而调用应用实例的 render 重新渲染（因为 render 方法中使用了 `parent.$route`, 这等价于 `vue._route`，所以 `_route` 的更新也会让 render 重走一遍）。而让这个值发生变化的，就是上面最后注册的 `history.listen` 中的 `cb`，也就是那句 `app._route = route`。
 
 ## router-link 和 router-view
 

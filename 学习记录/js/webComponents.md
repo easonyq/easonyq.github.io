@@ -180,7 +180,7 @@ Custom Elements 的生命周期函数并不多，但是足够使用。这里我�
 
 这个属性列表通过组件类上的一个静态只读属性来声明，在 ES6 Class 中使用一个 getter 函数来实现，只实现 getter 而不实现 setter，getter 返回一个常量，这样就是只读的了。像这样：
 
-```
+```javascript
 class AwesomeElement extends HTMLElement {
   static get observedAttributes() {
     return ['awesome'];
@@ -198,7 +198,7 @@ class AwesomeElement extends HTMLElement {
 
 在定义了自定义组件后，我们需要将它注册到 HTML 标签列表中，通过 `window.customElements.define()` 函数即可实现，这个函数接受两个必须参数和一个可选参数。第一个参数是注册的标签名，为了避免和 HTML 自身的标签冲突，Custom Elements 要求用户自定义的组件名必须至少包含一个短杠 `-`，并且不能以短杠开头，比如 `my-element`、`awesome-button` 之类都是可以的。第二个参数是注册的组件的 class，直接将继承的子类类名传入即可，当然也可以直接写一个匿名类：
 
-```
+```javascript
 window.customElements.define('my-element', class extends HTMLElement {
   ...
 });
@@ -208,7 +208,7 @@ window.customElements.define('my-element', class extends HTMLElement {
 
 由于 Custom Elements 是通过 JavaScript 来定义的，而一般 js 文件都是通过 `<script>` 标签外联的，所以 html 文档中的 Custom Elements 在 JavaScript 未执行时是处于一个默认的状态，浏览器默认会将其内容直接显示出来。为了避免这样的情况发生，Custom Elements 在被注册后都会有一个 `:defined` CSS 伪类而在注册前没有，所以我们可以通过 CSS 选择器在 Custom Elements 注册前将其隐藏起来，比如：
 
-```
+```css
 my-element:not(:defined) {
   display: none;
 }
@@ -236,7 +236,7 @@ my-element:not(:defined) {
 
 `<slot>` 标签有一个 `name` 属性，当你提供 `name` 后，它将变为一个“有名字的 `<slot>`”，这样的 `<slot>` 可以存在多个，只要名字各不相同。此时他们会自动匹配 Custom Elements 下带 `slot` 属性并且 `slot` 属性与自身 `name` 相同的子节点，像这样：
 
-```
+```html
 <template id="list">
   <div>
     <h1>Others</h1>
@@ -264,7 +264,7 @@ my-element:not(:defined) {
 </my-list>
 ```
 
-```
+```javascript
 class MyList extends HTMLElement {
   constructor() {
     super();

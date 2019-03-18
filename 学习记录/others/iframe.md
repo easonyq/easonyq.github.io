@@ -8,7 +8,7 @@
 
 当页面嵌入 iframe 之后，就有两种滚动方案，分别是：
 
-1. 在 body 上滚动，默认情况。可以把 iframe 看成一个 div，把高度设到足够防止它自身出滚动条。浏览器会对 body 滚动进行优化，例如滚动式把上面的标题栏，下面的菜单栏给隐藏掉，让可视区域变大。
+1. 在 body 上滚动，默认情况。可以把 iframe 看成一个 div，把高度设到足够防止它自身出滚动条。浏览器会对 body 滚动进行优化，例如滚动时把上面的标题栏，下面的菜单栏给隐藏掉，让可视区域变大。
 
   在这个方案下，iframe 一定是和 body 一起滚动的，因此一定是设置 `absolute, top:0, left: 0`，这时切换动画就会变得有点困难，例如 A 页面滚动到 100px 然后需要切换 B，为了切换效果， B 一定要设置为 `top: 100px`，那 B 往上的 100px 的空白就难了。
 
@@ -39,11 +39,11 @@
 
   ```
 
-  注意我们没有应用 CSS overflow 属性，而是直接使用 iframe 的 scrolling 属性。这个属性已经被 HTML5 规范废弃，但是由于历史原因，很多浏览器还是支持。
+注意我们没有应用 CSS overflow 属性，而是直接使用 iframe 的 scrolling 属性。这个属性已经被 HTML5 规范废弃，但是由于历史原因，很多浏览器还是支持。
 
-  但是 iOS 不支持这个属性，详见 [Bug Report](https://bugs.webkit.org/show_bug.cgi?id=149264) 以及 [Online Demo](http://output.jsbin.com/dedega)。
+但是 iOS 不支持这个属性，详见 [Bug Report](https://bugs.webkit.org/show_bug.cgi?id=149264) 以及 [Online Demo](http://output.jsbin.com/dedega)。
 
-  抛开 iOS 的问题，还有一个子方案是在 iframe 滚动时通知外层 body，用脚本进行滚动。但经验证明，这样太卡，不适合做方案，所以只是提一下。
+抛开 iOS 的问题，还有一个子方案是在 iframe 滚动时通知外层 body，用脚本进行滚动。但经验证明，这样太卡，不适合做方案，所以只是提一下。
 
 既然我们确定了 iframe 内部滚动，我们就要解决 iOS 的问题。
 
@@ -165,8 +165,6 @@ el.addEventListener('touchstart', function() {
     }
 });
 ```
-
-注意点有两个：
 
 但是有两点需要注意：
 
