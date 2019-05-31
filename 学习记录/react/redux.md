@@ -105,15 +105,13 @@ reducer 必须返回**新的** state，而不能仅仅在旧的 state 上处理�
 
 4. 通常这个监听函数会调用 `component.setState(store.getState())`，react 自动更新 view。
 
-# 中间件和异步操作
+## 中间件和异步操作
 
 上述基本流程中，reducer 可以立刻算出新的 state，称为同步。但如果需要发送请求等异步操作，就需要中间件的介入。
 
 中间件的原理是在 `store.dispatch` 方法调用时，经过中间件处理后，再执行 reducer。这样 reducer 依然是同步的，也没有 I/O 操作，异步的过程在中间件中执行，对前后都是透明的。
 
 ![](http://www.ruanyifeng.com/blogimg/asset/2016/bg2016092002.jpg)
-
-## 中间件的使用
 
 承接常见能力的中间件基本上都已经有了，不太需要额外开发。因此只关心它的使用方法即可。主要就是 `applyMiddleware` 方法，用作 `createStore` 的第二个参数。
 
@@ -163,7 +161,7 @@ let state = {
 
 1. 要发起异步操作时，发送一个发起操作的 action，触发 state 更新为“正在请求中”的状态（isFetching = true)，并更新视图（可能是个 Loading）
 
-2. 异步操作返回时，根据返回结果发送操作成功或者失败的 action，出发 state 更新状态，并更新视图（可能是正常结果，也可能是错误处理）
+2. 异步操作返回时，根据返回结果发送操作成功或者失败的 action，触发 state 更新状态，并更新视图（可能是正常结果，也可能是错误处理）
 
 第一个步骤和同步相同，重点在于第二个步骤，即异步操作返回时如何发送第二个 action。
 
@@ -174,35 +172,175 @@ let state = {
 ```javascript
 const fetchPosts = postTitle => {
   return (dispatch, getState) => {
-    dispatch(requestPosts(postTitle));
+    // 触发第一个 action，表示发起操作
+    dispatch({type: 'FETCH_DATA'});
     return fetch(`/some/API/${postTitle}.json`)
       .then(response => response.json())
-      .then(json => dispatch(receivePosts(postTitle, json)));
+      // 触发第二个 action，表示收到响应，修改数据
+      .then(json => dispatch({type: 'FETCH_DATA', payload: json}));
     };
   }
 };
 ```
 
-`fetchPosts` 返回的方法接两个参数，分别是 `dispatch` 和 `getState`。和上述操作流程一样，先发送一个发起操作的 action (`requestPosts(postTitle)`)，随后调用 `fetch` 异步操作，在返回后，发起第二个操作成功的 action （`receivePosts(postTitle, json)`)。
+`fetchPosts` 返回的方法接两个参数，分别是 `dispatch` 和 `getState`。和上述操作流程一样，先发送一个发起操作的 action ，随后调用 `fetch` 异步操作，在返回后，发起第二个操作成功的 action。
 
-`store.dispatch` 方法只接受对象类型的 action。为了让这里返回函数被接受，需要一个中间件叫做 [redux-thunk](https://github.com/gaearon/redux-thunk)。经过这个中间件的强化，`store.dispatch` 就可以接受函数作为参数了。
-
-从本质上说，当发起异步操作后，实际上还是只发送了一个 action。这第二个 action 是在中间件内部发送的，而参数 `dispatch` 和 `getState`，也是所有中间件的固定参数格式。
-
-### 方案二：redux-promise
-
-这个思路和上面类似，只是不同于让 dispatch 接受函数，这个方案是让它接受 Promise 对象，用到的中间件叫做 redux-promise。
+在 react 组件中，这个 `fetchPosts` 的调用方法是：
 
 ```javascript
-const fetchPosts = (dispatch, postTitle) => {
-  return new Promise((resolve, reject) => {
-    dispatch(requestPosts(postTitle));
-    return fetch(`/some/API/${postTitle}.json`).then(response => {
-      return {
-        type: 'FETCH_POSTS',
-        payload: response.json()
-      };
-    });
-  });
-});
+class AsyncApp extends Component {
+  componentDidMount() {
+    const { dispatch, selectedPost } = this.props
+    dispatch(fetchPosts(selectedPost))
+    // 如有需要在这里就使用请求的数据，可以继续使用 then
+    // dispatch(fetchPosts(selectedPost)).then(() => {
+    //   console.log(store.getState())
+    // })
+  }
 ```
+
+`store.dispatch` 方法只接受对象类型的 action。为了让这里返回函数被接受，需要一个中间件叫做 [redux-thunk](https://github.com/gaearon/redux-thunk)。经过这个中间件的强化，`store.dispatch` 就可以接受函数作为参数了。而这个被送出的 `fetchPosts(selectedPost)`，忽略内部细节，对外来说就是一个异步的 action，所以 `fetchPosts` 也就是一个异步的 action creator 了。
+
+```javascript
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
+import reducer from './reducers';
+
+// Note: this API requires redux@>=3.1.0
+const store = createStore(
+  reducer,
+  applyMiddleware(thunk)
+);
+```
+
+从本质上说，当发起异步操作后，实际上还是只发送了一个 action。这第二个 action 是在中间件内部发送的，而参数 `dispatch` 和 `getState`，也是所有中间件的固定参数格式。普通的 action creator 的参数是一个对象，即一个 action 的内容。
+
+### 方案二：redux-saga
+
+采用 generator functions （`function* ()`）和 `yield` 来进行异步操作（和 mobx 的 flow 语法相同，但内部还是不太一样）。
+
+详见[教程](https://redux-saga-in-chinese.js.org/docs/introduction/BeginnerTutorial.html)
+
+## react-redux
+
+react 项目要使用 redux，有两种方式。第一种是自己组织，负责把 state, dispatch 等当做属性一个个传递下去，比较自由。但更多的方法是使用官方提供的连接库： react-redux。
+
+使用这个库的话，首先需要对组件进行分类：
+
+1. UI 组件
+
+  * 处理 UI 展现，拼装各种展示组件
+  * 没有状态，即不使用 `this.state` 变量
+  * 所有数据均来自属性，即 `this.props`
+  * 不是用任何 redux 的 API (state, dispatch 等)
+  * 用户手动编写
+
+2. 容器组件
+
+  * 只处理数据，不处理 UI 展现
+  * 使用 redux 的 API
+  * react-redux 自动生成，不需要用户编写。用户只需要使用 `connect` 与 UI 组件连接即可。
+
+### connect
+
+我们编写自己的 UI 组件，之后使用 `connect` 方法，并把 UI 组件当做第二部分的参数传入。它的返回值是一个新的组件，即容器组件。之后在使用的时候，只要使用这个容器组件即可，它内部自动会把 UI 组件包括进去。
+
+```javascript
+import { connect } from 'react-redux'
+
+const VisibleTodoList = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList)
+```
+
+例子中的 TodoList 是一个我们自己编写的 UI 组件，而返回的 VisibleTodoList 就是一个容器组件。之后使用这个组件就可以了。这部分会在最后体现。
+
+这里涉及了两个方法 `mapStateToProps` 和 `mapDispatchToProps`，他们是为了 UI 组件和外部通讯使用的。
+
+### mapStateToProps
+
+从外到内，把外部的 state 映射到 props，供 UI 组件使用。
+
+```javascript
+const mapStateToProps = (state) => {
+  return {
+    todos: getVisibleTodos(state.todos, state.visibilityFilter)
+  }
+}
+```
+
+`mapStateToProps` 接受 state 为参数，返回一个对象。对象的 key 是之后 UI 组件要使用的 props 的名字；value 是它的值。这个 `getVisibleTodos` 方法就是根据当前的 state，获取合适 todos 进行返回。例如
+
+```javascript
+const getVisibleTodos = (todos, filter) => {
+  switch (filter) {
+    case 'SHOW_ALL':
+      return todos
+    case 'SHOW_COMPLETED':
+      return todos.filter(t => t.completed)
+    case 'SHOW_ACTIVE':
+      return todos.filter(t => !t.completed)
+    default:
+      throw new Error('Unknown filter: ' + filter)
+  }
+}
+```
+
+当 state 发生变化，react-redux 会自动重新计算，重新渲染 UI 组件，所以不需要我们手动调用 subscribe 方法了。
+
+`mapStateToProps` 还可以接第二个参数，是 `ownProps`，表示容器组件的 props 对象，也可以用。
+
+如果在 `connect` 的时候不传入 `mapStateToProps` 属性（方法），那么表示这个组件不需要 state，那么如果 state 变化，这个组件也就不会重新渲染了，连带内部的 UI 组件也是一样。
+
+### mapDispatchToProps
+
+从内到外，在 UI 组件的交互逻辑中（例如点击），向外 dispatch action。这个属性可以是一个对象，也可以是一个函数。
+
+```javascript
+// 函数写法
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => {
+      dispatch({
+        type: 'SET_VISIBILITY_FILTER',
+        filter: ownProps.filter
+      });
+    }
+  };
+}
+
+// 对象写法
+const mapDispatchToProps = {
+  onClick: (filter) => {
+    type: 'SET_VISIBILITY_FILTER',
+    filter: filter
+  };
+}
+```
+
+如果采用函数的写法，参数是 dispatch 和 ownProps 两个，返回的对象中，key 是 props 的名字，value 是这个 props 的值，也就是交互之后具体执行的方法内容。
+
+如果是对象写法，key 依然是 props 的名字，value 是一个 action creator，即返回一个 action 的方法，这个 action 会被自动发出。
+
+### <Provider> 组件
+
+`connect` 方法生成容器组件以后，需要让容器组件拿到 state 对象，才能生成 UI 组件的参数。react-redux 提供 Provider 组件，可以让容器组件拿到 state。只要用 Provider 组件作为最外层，包裹住其他的组件即可。
+
+```javascript
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
+import todoApp from './reducers'
+import App from './components/App'
+
+let store = createStore(todoApp);
+
+render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+)
+```
+
+Provider 的原理是把 store 挂到组件的 context 属性上，这样每个容器组件都能从 context 上取到 store，再通过 `store.getState()` 获取 state。
