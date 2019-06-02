@@ -213,13 +213,108 @@ const store = createStore(
 );
 ```
 
-从本质上说，当发起异步操作后，实际上还是只发送了一个 action。这第二个 action 是在中间件内部发送的，而参数 `dispatch` 和 `getState`，也是所有中间件的固定参数格式。普通的 action creator 的参数是一个对象，即一个 action 的内容。
-
 ### 方案二：redux-saga
 
-采用 generator functions （`function* ()`）和 `yield` 来进行异步操作（和 mobx 的 flow 语法相同，但内部还是不太一样）。
+采用 generator functions （`function* ()`）和 `yield` 来进行异步操作，一般编写成一个单独的 sagas.js （或者目录）。
 
-详见[教程](https://redux-saga-in-chinese.js.org/docs/introduction/BeginnerTutorial.html)
+```javascript
+import { delay } from 'redux-saga'
+import { put, takeEvery, all } from 'redux-saga/effects'
+
+function* helloSaga() {
+  console.log('Hello World');
+}
+
+function* incrementAsync() {
+  yield delay(1000)
+  yield put({ type: 'INCREMENT' })
+}
+
+function* watchIncrementAsync() {
+  yield takeEvery('INCREMENT_ASYNC', incrementAsync)
+}
+
+// notice how we now only export the rootSaga
+// single entry point to start all Sagas at once
+export default function* rootSaga() {
+  yield all([
+    helloSaga(),
+    watchIncrementAsync()
+  ])
+}
+```
+
+一个 sagas.js 至少分为两部分。第一部分是具体的任务（worker），它就是业务逻辑的实现处（包含异步操作），其中 `put` 就是 dispatch action。第二部分是监听 action，并且决定执行哪一个 worker。
+
+例子中的 `'INCREMENT_ASYNC'` 是从组建的按钮点击后发出的 action 的 type，`'INCREMENT'` 也是一个 action 的 type，而且这个 action 会给 reducer 接受并处理。（异步的那个 action 不会被 reducer 处理，只会返回原有的 state）。
+
+每个任务的 `yield` 都会生成一个 Promise，被中间件处理。当这个 Promise 完成后，中间件继续执行任务，直到遇到下一个 `yield` 或者执行完毕。
+
+当存在多个需要执行的 saga 时，对外还是应该输出同一个，然后由 `all` 来同时调用。
+
+在最外层的 `main.js` 中，我们需要添加 `redux-saga` 中间件，并且执行这个返回的 `rootSaga`。
+
+```javascript
+import "babel-polyfill"
+
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { createStore, applyMiddleware } from 'redux'
+
+// Counter 是一个组件，包含按钮，并绑定点击事件，dispatch action
+import Counter from './Counter'
+// reducer 处理所有的 action
+import reducer from './reducers'
+// 引入刚才暴露的单个 saga
+import rootSaga from './sagas'
+
+const sagaMiddleware = createSagaMiddleware()
+const store = createStore(
+  reducer,
+  applyMiddleware(sagaMiddleware)
+)
+sagaMiddleware.run(rootSaga)
+
+const action = type => store.dispatch({type})
+
+function render() {
+  ReactDOM.render(
+    <Counter
+      value={store.getState()}
+      onIncrement={() => action('INCREMENT')}
+      onIncrementAsync={() => action('INCREMENT_ASYNC')}
+      onDecrement={() => action('DECREMENT')} />,
+    document.getElementById('root')
+  )
+}
+
+render()
+store.subscribe(render)
+
+```
+
+参考[教程](https://redux-saga-in-chinese.js.org/docs/introduction/BeginnerTutorial.html) 和 [示例代码库](https://github.com/redux-saga/redux-saga-beginner-tutorial)(saga分支是修改后的代码)
+
+上述例子中的 `takeEvery` 是一个在监听任务中最常用的方法，用于监听每一个异步任务，和 redux-thunk 效果相同。它可以支持同时执行多个异步任务，即便前一个还没完成。除此之外比较常用的还有 `takeLatest`，它只处理最新的那个请求，旧的还没完成的任务会被取消。从这点上来说，redux-saga 要强于 redux-thunk，因为这些逻辑到了 thunk 中需要手动处理。
+
+为了容易测试的考虑，一般在 saga 的任务中不直接调用异步方法(例如 `Api.fetch('/products')`)，因为这样要求测试脚本实现一个假的 `Api.fetch` 方法，比较麻烦。如果我们只是把这个方法的名字以及参数告诉 redux-saga 中间件，由它负责执行，那么测试的时候只要验证方法名字和参数是否正确就足够了。因此，调用异步方法一般使用如下代码。这种模式叫做“声明式调用”，即不是真的直接调用方法，而是把调用信息（指令）传递到中间件。
+
+```javascript
+import { call } from 'redux-saga/effects'
+
+function* fetchProducts() {
+  // const products = yield Api.fetch('/products')
+  const products = yield call(Api.fetch, '/products')
+}
+```
+
+相同的思路出现在 dispatch action。为了避免模拟 `dispatch` 方法，在 saga 中倾向于使用 `put()` 来声明要发送的 action，再由中间件来发送。这些声明式的指令，saga 把它命名为 **Effect**。
+
+### 两者的比较
+
+最后还有一篇比较 thunk 和 saga 的文章，可供[参考](https://decembersoft.com/posts/redux-thunk-vs-redux-saga/)。
+
+> Thunks can never act in response to an action. Redux-Saga, on the other hand, subscribes to the store and can trigger a saga to run or continue when a certain action is dispatched.
 
 ## react-redux
 

@@ -71,7 +71,7 @@ class Todo {
 
 **注意：mobx 的 actions 定义和 redux 的 actions 是不同的。mobx 的 actions 大致等于 redux 的 reducer，是一个函数，而不是一条指令（简单对象）**
 
-mobx 的 actions 是可选的，这是它和 redux 最大的差别之一。mobx 的状态是可以直接更改的，并不需要像 redux 的 reducer 那样每次返回新的对象，而不得修改原有状态。
+mobx 的 actions 是可选的，这是它和 redux 最大的差别之一。mobx 的状态是可以直接更改的，并不需要像 redux 的 reducer 那样每次返回新的对象，而不得修改原有状态。所以说 mobx 更加自由和宽松。
 
 不使用 actions，直接修改状态：
 
@@ -248,7 +248,7 @@ class Store {
 
 ## mobx-react
 
-当 mobx 和 react 配套使用时，就需要引入 mobx-react 库。它提供的最大的便利之一，就是通过 `@observer` 修饰符（或者 `observer` 方法）把 react 组件套起来，这样当数据（observable)变化时，组件会自动更新，不需要手动调用 autorun 等方法。
+当 mobx 和 react 配套使用时，就需要引入 mobx-react 库。它提供的最大的便利之一，就是通过 `@observer` 修饰符（或者 `observer` 方法）把 react 组件套起来，这样当数据（observable)变化时，组件会自动更新，不需要手动调用 `autorun` 等方法。
 
 ```javascript
 import React, {Component} from 'react';
@@ -284,3 +284,24 @@ const TodoView = observer(({todo}) =>
 const store = new TodoList();
 ReactDOM.render(<TodoListView todoList={store} />, document.getElementById('mount'));
 ```
+
+在被 `observer` 包裹的组件中的 `render` 方法被使用到的变量都属于被观察的状态，只要发生变化就会由 mobx 自动触发 react 的重绘。它和普通的 react 组件相比有几个特点：
+
+1. **性能更优秀**。传统的 react 组件内部使用 `shouldComponentUpdate` 方法对前后状态进行深度比较，从而决定是否要更新组件，这个比较开销比较大。而 mobx 的观察机制决定它能够准确得知状态是否发生了改变，因此一旦发生，它不需要进行深度比较，而是直接使用 `forceUpdate` 更新组件，性能有很大提升。
+
+2. 组件状态在组件外部定义，不在组件之内。这样使得组件状态的维护更加清晰，兄弟组件之间复用状态也比较简单。这也是状态统一管理的思路。
+
+
+### 和 redux 相比
+
+Mobx 的优势来源于可变数据（Mutable Data）和可观察数据 (Observable Data) 。
+
+Redux 的优势来源于不可变数据（Immutable data）。
+
+1. 可变数据的优势：相比 redux, 组件状态的修改可以直接进行，不需要通过 action -> dispatch -> reducer 这套复杂的流程并生成一个新的状态。当然严格模式下 action 还是需要的，不过后面两部依然可以省略。
+
+2. 不可变数据的优势：可预测性和可回溯。可以快速回到任意一个历史的状态，并且历史状态不可能被改变。
+
+    不可变数据不一定要使用 Immutable.js 库，更重要的是一种约定。只要约定每次返回新的状态，不修改旧的，就符合了不可变数据的原则。Immutable.js 只是一种更简便的实现而已。
+
+具体的选择可以根据业务特性，是否愿意为了可回溯的特性，牺牲代码的简便，状态改变流程的缩短。
