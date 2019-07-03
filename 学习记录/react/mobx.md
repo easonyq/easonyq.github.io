@@ -305,3 +305,118 @@ Redux 的优势来源于不可变数据（Immutable data）。
     不可变数据不一定要使用 Immutable.js 库，更重要的是一种约定。只要约定每次返回新的状态，不修改旧的，就符合了不可变数据的原则。Immutable.js 只是一种更简便的实现而已。
 
 具体的选择可以根据业务特性，是否愿意为了可回溯的特性，牺牲代码的简便，状态改变流程的缩短。
+
+### 最简版例子
+
+三个步骤：
+
+1. 使用 `mobx.observable(state)` 来定义状态
+
+2. 使用 `mobx.action(newState => state = newState)` 来定义状态改变
+
+3. 使用 `mobxReact.observer(ReactComponent)` 来定义响应式的 React 组件。在组件中调用 action 实现状态改变。
+
+```js
+// 通过 observable 定义组件的状态
+const user = mobx.observable({
+    name: "Jay",
+     age: 22
+})
+
+// 通过 action 定义如何修改组件的状态
+const changeName = mobx.action(name => user.name = name)
+const changeAge = mobx.action(age => user.age = age)
+
+// 通过 observer 定义 ReactComponent 组件。
+const Hello = mobxReact.observer(class Hello extends React.Component {
+    componentDidMount() {
+        // 视图层通过事件触发 action
+        changeName('Wang') // render Wang
+    }
+
+    render() {
+        // 渲染
+        console.log('render',user.name);
+        return <div>Hello,{user.name}!</div>
+    }
+})
+
+ReactDOM.render(<Hello />, document.getElementById('mount'));
+
+// 非视图层事件触发，外部直接触发 action
+changeName('Wang2')// render Wang2
+
+// 重点：没有触发重新渲染
+// 原因：Hello 组件并没有用到 `user.age` 这个可观察数据
+changeAge('18')  // no console
+```
+
+注意：
+
+1. 状态可以定义在组件外部，且在组件外部也可以触发状态变化，因此就实现了显示和状态的分离。
+
+2. mobx 自行确定组件是否需要重绘（通过可观察属性），因此不需要 react 递归检查，也不需要开发者使用 `shouldComponentUpdate`，性能很高。
+
+## mobx-state-tree
+
+mobx 使用的是可变数据，因此可以直接改变状态，比较方便。同时回溯历史状态就不太方便。而 mobx-state-tree （简称 MST）可以解决这个问题，让 mobx 同时拥有两种好处。
+
+```js
+import { types, onSnapshot } from "mobx-state-tree"
+
+const Todo = types
+    .model("Todo", {
+        title: types.string,
+        done: false
+    })
+    .actions(self => ({
+        toggle() {
+            self.done = !self.done
+        }
+    }))
+
+const Store = types.model("Store", {
+    todos: types.array(Todo)
+})
+
+// create an instance from a snapshot
+const store = Store.create({
+    todos: [
+        {
+            title: "Get coffee"
+        }
+    ]
+})
+
+// listen to new snapshots
+onSnapshot(store, snapshot => {
+    console.dir(snapshot)
+})
+
+// invoke action that modifies the tree
+store.todos[0].toggle()
+// prints: `{ todos: [{ title: "Get coffee", done: true }]}`
+```
+
+MST 要求状态使用三层结构：
+
+1. 一棵树（一个完整的状态）拥有多个 model （如例子中的 `Todo` 和 `Store`）
+
+2. 一个 model 可以有多个节点（如例子中 `Todo` 的 `title` 和 `done`）。他们可以是数据类型(`type.string`)，也可以是具体的值（`false`）。model 的第三个参数是 action，可以在之后调用，修改状态（可变数据的特点）
+
+3. 定义完毕后，通过 `create` 方法，填入实际的数据，获得实例。
+
+4. 修改状态时，可以直接调用 action，以可变数据的形式更换状态
+
+5. 使用内置的 snapshot 功能，可以把当前状态保存下来，且以后不会再改变。这是不可变数据的特点。
+
+### 使用 snapshot 创建 model
+
+获取到 snapshot 之后，MST 支持从它生成新的实例，只要使用 `applySnapshot` 方法。
+
+```js
+import {applySnapshot} from 'mobx-state-tree'
+
+// 往 store 中写入刚才获取的 snapshot，相当于恢复 store
+applySnapshot(store, snapshot)
+```
