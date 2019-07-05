@@ -1,53 +1,3 @@
-待阅读的文章列表
-
-* immtuable 相关
-  [https://zhuanlan.zhihu.com/p/44571842](https://zhuanlan.zhihu.com/p/44571842)
-  [https://zhuanlan.zhihu.com/p/45106741](https://zhuanlan.zhihu.com/p/45106741)
-  [redux 官网 FAQ](https://redux.js.org/faq/immutabledata#why-is-immutability-required-by-redux)
-
-* 生产环境的 sourcemap
-  [https://webpack.js.org/configuration/devtool/#production](https://webpack.js.org/configuration/devtool/#production)
-
-* flutter
-  [咸鱼的知乎](https://www.zhihu.com/collection/253384895)
-
-------
-
-一些可能有用的记录
-
-* [页面和 SW 互相通讯的方法](http://craig-russell.co.uk/2016/01/29/service-worker-messaging.html#.W-KTZtUzbRY)
-
-* PWA 的实际收益 （数据截止 2017 年，来自国外网站）
-    * Twitter
-        * 页面停留时长增加 65%
-        * 发推量增加 75%
-        * 跳出率降低 20%
-
-    * The Weather Channel
-        * 页面加载耗时减少了 80%
-
-    * MakeMyTrip
-        * PWA 版本的购物用户增加了 160%
-        * 页面加载速度增加 38%
-        * 首次购物者转化比 APP 多 3 倍
-
-    * Forbes
-        * 访问时长增加 2 倍
-        * 访问次数增加 20%
-
-    * 数据来自 [https://www.pwastats.com](https://www.pwastats.com)
-
-------
-
-nodejs后端框架：
-yog2(百度基于express)
-eggjs(阿里出品基于koa)
-koa
-express
-nestjs(angular风格)
-
-------
-
 阅读过的书目列表
 
 * 2018
@@ -71,9 +21,47 @@ nestjs(angular风格)
     * 中国历史大事详解：隋唐史
     * 幻夜
     * 虚无的十字架
+    * 摆渡人
 
 待阅读列表
 
 * 中国简史
-* 摆渡人
 * 白夜行
+
+------
+
+一些可能有用的记录
+
+* [页面和 SW 互相通讯的方法](http://craig-russell.co.uk/2016/01/29/service-worker-messaging.html#.W-KTZtUzbRY)
+
+* PWA 的实际收益 [https://www.pwastats.com](https://www.pwastats.com)
+
+------
+
+nodejs后端框架：
+yog2(百度基于express)
+eggjs(阿里出品基于koa)
+koa
+express
+nestjs(angular风格)
+
+------
+
+一些值得了解的技术
+
+前端
+
+* mobx-state-tree 让 mobx 同时拥有可变数据的方便和不可变数据的可预测性和可追溯性（snapshot, patch）
+* [@loadable/component](https://github.com/smooth-code/loadable-components) 手动分割react项目，支持把某个组件延迟加载，分到不同的bundle中
+* react-router-dom react-router v4.0 之后，常规项目需要引入 react-router-dom 而不是 react-router。重点组件 `<HashRouter>`, `<Router>`, `<Route>`, `<Switch>`, `<Redirect>`, `<Link>` 等。
+* [搜索 @types](https://microsoft.github.io/TypeSearch/) 搜索常用类库是否有 @types 类型定义
+
+后端
+
+* [RxJS](https://cn.rx.js.org/) 使用 Observers 的响应式变成的库
+* boom 响应 HTTP 错误的快捷类库
+* graphql, graphql-tools
+* kafka-node
+* mqtt, async-mqtt 使用 mqtt 协议进行通讯
+* socket.io, socketio-auth
+* concurrently 并行执行一些命令，常用在npm script中
