@@ -22,11 +22,16 @@
     * 幻夜
     * 虚无的十字架
     * 摆渡人
+    * 白夜行
 
 待阅读列表
 
 * 中国简史
-* 白夜行
+* 秘密
+* 恶意
+* 流星之绊
+* 平行世界爱情故事
+* 火车
 
 ------
 
@@ -48,15 +53,6 @@ nestjs(angular风格)
 ------
 
 一些值得了解的技术
-
-前端
-
-* mobx-state-tree 让 mobx 同时拥有可变数据的方便和不可变数据的可预测性和可追溯性（snapshot, patch）
-* [@loadable/component](https://github.com/smooth-code/loadable-components) 手动分割react项目，支持把某个组件延迟加载，分到不同的bundle中
-* react-router-dom react-router v4.0 之后，常规项目需要引入 react-router-dom 而不是 react-router。重点组件 `<HashRouter>`, `<Router>`, `<Route>`, `<Switch>`, `<Redirect>`, `<Link>` 等。
-* [搜索 @types](https://microsoft.github.io/TypeSearch/) 搜索常用类库是否有 @types 类型定义
-
-后端
 
 * [RxJS](https://cn.rx.js.org/) 使用 Observers 的响应式变成的库
 * boom 响应 HTTP 错误的快捷类库
