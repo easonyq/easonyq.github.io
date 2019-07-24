@@ -59,3 +59,7 @@ nestjs(angular风格)
 * mqtt, async-mqtt 使用 mqtt 协议进行通讯
 * socket.io, socketio-auth
 * concurrently 并行执行一些命令，常用在npm script中
+* interactjs 处理拖拽的强大前端库
+* json-schema 生成 jsonSchema
+* adv 验证一段 JSON 是否符合 jsonSchema
+* fast-json-patch 把 json-patch（规范）应用到一个 JSON 文件，获得新的 JSON
