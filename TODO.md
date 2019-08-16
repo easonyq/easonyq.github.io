@@ -26,11 +26,13 @@
     * 恶意
     * 太平公主和她的时代
     * 纪连海正说康乾十三杰
+    * 赋能：打造应对不确定性的敏捷团队*
+    * 非暴力沟通*
+    * 秘密
 
 待阅读列表
 
 * 中国简史
-* 秘密
 * 火车
 
 ------
@@ -65,3 +67,4 @@ nestjs(angular风格)
 * json-schema 生成 jsonSchema
 * adv 验证一段 JSON 是否符合 jsonSchema
 * fast-json-patch 把 json-patch（规范）应用到一个 JSON 文件，获得新的 JSON
+* [three.js](http://www.hewebgl.com/article/getarticle/27) - 比原生 webgl 更好用的 3D 库

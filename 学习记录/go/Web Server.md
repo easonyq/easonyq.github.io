@@ -166,6 +166,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
+注意：如果使用 axios.post 发送请求，需要额外查看 content-type。如果是 application/json 的话，使用 `r.ParseForm()` 无法获取数据。应当改用 `decoder := json.NewDecoder(req.Body)` 然后 `decoder.Decode(&data)`，最后 `data.MyField` 获取。
+
 gtpl 文件里可以包含一些特定的模板语法，例如
 
 ```html
@@ -316,6 +318,268 @@ for _, cookie := range r.Cookies() {
     fmt.Fprintf(w, cookie.Name)
 }
 ```
+
+### Session
+
+GO 原生没有支持对 session 的操作，因此我们使用 [gorilla/session](https://github.com/gorilla/session) 来处理。
+
+```go
+// sessions.go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/gorilla/sessions"
+)
+
+var (
+	// key must be 16, 24 or 32 bytes long (AES-128, AES-192 or AES-256)
+	key = []byte("super-secret-key")
+	store = sessions.NewCookieStore(key)
+)
+
+func secret(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cookie-name")
+
+	// Check if user is authenticated
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	// Print secret message
+	fmt.Fprintln(w, "The cake is a lie!")
+}
+
+func login(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cookie-name")
+
+	// Authentication goes here
+	// ...
+
+	// Set user as authenticated
+	session.Values["authenticated"] = true
+	session.Save(r, w)
+}
+
+func logout(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "cookie-name")
+
+	// Revoke users authentication
+	session.Values["authenticated"] = false
+	session.Save(r, w)
+}
+
+func main() {
+	http.HandleFunc("/secret", secret)
+	http.HandleFunc("/login", login)
+	http.HandleFunc("/logout", logout)
+
+	http.ListenAndServe(":8080", nil)
+}
+```
+
+## Socket
+
+Socket 遵从 Unix “一切皆文件” 的基本思路，和文件一样通过“打开 -> 读写 -> 关闭”的模式来处理，所以 Socket 也是一个文件描述符，是一种特殊的 I/O。
+
+常用的 Socket 有两种：流式 Socket (SOCK_STREAM) 和数据报式 Socket (SOCK_DGRAM)。流式针对面向连接的 TCP 服务应用，数据报式则针对于无连接的 UDP 服务应用。
+
+![TCP/IP协议结构图](https://github.com/easonyq/build-web-application-with-golang/raw/master/zh/images/8.1.socket.png?raw=true)
+
+类似于本地通过 PID 来标识进程，在网络中使用网络层的 IP 地址来唯一标识一台主机，而传输层的“协议+端口”可以唯一标识应用程序，因此，IP+协议+端口就成了可以在网络中唯一标识进程的三元组。
+
+以下内容使用 GO 的原生支持。比较常用的包 gorilla/websocket 也能解决问题。
+
+### 处理 IP
+
+GO 中的 `net` 包定义了很多网络相关的类型，其中 `type IP []byte` 用来表示 IPv4 的类型。下面是一些常用的 IP 相关的操作
+
+```go
+// 把一个字符串的IP地址(例如 "127.0.0.1") 转化为 IP 类型
+addr := net.ParseIP(ipString)
+
+// 把一个网络地址+端口转化为一个 TCPAddr 类型，包含 IP IP, Port int, Zone string（IPv6 使用） 三个字段。
+// 返回类型是 *TCPAddr
+var tcpAddr *net.TCPAddr = net.ResolveTCPAddr("tcp", "www.google.com:80")
+```
+
+### TCP Client
+
+使用 `net.DialTCP` 来建立一个 TCP 连接，返回一个 TCPConn 类型的对象。当连接建立时服务器端也创建一个同类型的对象，此时客户端和服务器端通过各自拥有的 TCPConn 对象来进行数据交换。一般而言，客户端通过 TCPConn 对象将请求信息发送到服务器端，读取服务器端响应的信息。服务器端读取并解析来自客户端的请求，并返回应答信息，这个连接只有当任一端关闭了连接之后才失效，不然这连接可以一直在使用。建立连接的函数定义如下：
+
+```go
+// network: "tcp4", "tcp6", "tcp" 中的任意一个
+// laddr: 本机地址，一般是 nil
+// raddr: 远程地址，可以由上面的 ResolveTCPAddr 返回
+func DialTCP(network string, laddr, raddr *TCPAddr) (*TCPConn, error)
+```
+
+一个使用的例子是：
+
+```go
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+)
+
+func main() {
+	if len(os.Args) != 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s host:port ", os.Args[0])
+		os.Exit(1)
+	}
+	// 取输入参数的第二个作为服务端地址
+	service := os.Args[1]
+
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
+	checkError(err)
+
+	// 获取连接 conn
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	checkError(err)
+
+	// 写入RequestHeaders: HEAD / HTTP/1.0\r\n\r\n
+	_, err = conn.Write([]byte("HEAD / HTTP/1.0\r\n\r\n"))
+	checkError(err)
+
+	// 读取 conn 中的所有数据
+	// 实际使用还需要套一个 for ，直到读到 err = io.EOF 为止
+	result := make([]byte, 256)
+	_, err = conn.Read(result)
+	checkError(err)
+
+	fmt.Println(string(result))
+	os.Exit(0)
+}
+func checkError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
+}
+```
+
+### TCP Server
+
+与 `DialTCP` 对应，net 中还有一个 `ListenTCP` 方法可以用来当做服务端提供服务，它的签名是
+
+```go
+func ListenTCP(network string, laddr *TCPAddr) (*TCPListener, error)
+func (l *TCPListener) Accept() (Conn, error)
+```
+
+服务器的示例代码如下：
+
+```go
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"time"
+)
+
+func main() {
+	service := ":7777"
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
+	checkError(err)
+
+	// 监听本地7777端口，提供服务
+	listener, err := net.ListenTCP("tcp", tcpAddr)
+	checkError(err)
+
+	for {
+		// 使用 listener.Accept 获取连接 conn
+		conn, err := listener.Accept()
+		if err != nil {
+			continue
+		}
+		go handleClient(conn)
+	}
+}
+func checkError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		os.Exit(1)
+	}
+}
+
+func handleClient(conn net.Conn) {
+	defer conn.Close()
+	daytime := time.Now().String()
+	conn.write([]byte(daytime))
+}
+```
+
+在 `for` 循环中，如果出错，并不是 `break` 而是 `continue`，应当使客户端报错退出。
+
+下面的例子会针对不同的客户端返回不同的结果，只列出 `handleClient` 的代码
+
+```go
+func handleClient(conn net.Conn) {
+	// 设置超时 2 分钟
+	conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
+	// 读取长度不要设置的太大，防止 flood attack
+	request := make([]byte, 128)
+	defer conn.Close()
+	for {
+		// 服务端也使用 conn 来读取客户端的请求数据
+		read_len, err := conn.Read(request)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		if read_len == 0 {
+			// 连接被客户端关闭，读不到结果
+			break
+		} else if strings.TrimSpace(string(request[:read_len])) == "timestamp" {
+			// 如果客户端请求 "timestamp"，则返回时间戳
+			daytime := strconv.FormatInt(time.Now().Unix(), 10)
+			conn.Write([]byte(daytime))
+		} else {
+			// 返回可读的时间格式
+			daytime := time.Now().String()
+			conn.Write([]byte(daytime))
+		}
+
+		// 清空 request
+		request = make([]byte, 128)
+	}
+}
+```
+
+这个例子中，服务器会不断读取客户端的数据，并且连接是不关闭的，即保持长连接。开头的超时设置表示当2分钟内客户端没有数据发送则关闭。
+
+除了上面的 `SetReadDeadline` 之外，常用的控制函数还有
+
+* `func DialTimeout(net, addr string, timeout time.Duration) (Conn, error)` 带超时的 Dail，客户端和服务器都适用。
+* `func (c *TCPConn) SetWriteDeadline(t time.Time) error` 在规定时间内如果没有写入消息则关闭连接
+* `func (c *TCPConn) SetKeepAlive(keepalive bool) os.Error` 设置 keepAlive 属性。操作系统层在tcp上没有数据和ACK的时候，会间隔性的发送keepalive包，操作系统可以通过该包来判断一个tcp连接是否已经断开，在windows上默认2个小时没有收到数据和keepalive包的时候认为 tcp 连接已经断开，这个功能和我们通常在应用层加的心跳包的功能类似。
+
+### UDP
+
+UDP 的方法和 TCP 基本一致，只是方法的名字都改成了 UDP。另外 UDP 中没有 Accept 函数。
+
+```go
+func ResolveUDPAddr(net, addr string) (*UDPAddr, os.Error)
+func DialUDP(net string, laddr, raddr *UDPAddr) (c *UDPConn, err os.Error)
+func ListenUDP(net string, laddr *UDPAddr) (c *UDPConn, err os.Error)
+func (c *UDPConn) ReadFromUDP(b []byte) (n int, addr *UDPAddr, err os.Error)
+func (c *UDPConn) WriteToUDP(b []byte, addr *UDPAddr) (n int, err os.Error)
+```
+
+### WebSocket
+
+HTML5 中加入了 WebSocket，允许浏览器和服务器进行全双工通信，保持一个连接不断，持续在这个连接中收发消息。WebSocket URL 的协议是 ws:// 或者 wss:// (SSL，类似于 https)。
+
+GO 中没有原生对 WebSocket 的支持。可以使用 `go get golang.org/x/net/websocket` 来操作。
 
 ## 连接数据库
 
@@ -553,3 +817,9 @@ func main() {
 	fmt.Println("Phone:", result.Phone)
 }
 ```
+
+## 部署服务
+
+GO 编译后是一个可执行文件，通常使用第三方工具进行管理，例如 Supervisord。具体操作步骤见[这里](https://github.com/easonyq/build-web-application-with-golang/blob/master/zh/12.3.md#supervisord) (例子中的 /data/blog/blogdemon 应该就是 go build 出来的产物)
+
+[如何部署Golang程序到服务器](https://www.jianshu.com/p/bfaba9b6d46d) (`env GOOS=linux GOARCH=386 go build main.go`)
