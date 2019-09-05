@@ -773,48 +773,70 @@ func main() {
 
 ![Mongo and mySQL](https://github.com/easonyq/build-web-application-with-golang/raw/master/zh/images/5.6.mongodb.png?raw=true)
 
-GO 中最常用的 mongo 驱动是 mgo，安装命令是 `go get gopkg.in/mgo.v2`
+GO 中最常用的 mongo 驱动是 mongo-go-driver，由 mongodb 官方发布，地址是 [https://github.com/mongodb/mongo-go-driver](https://github.com/mongodb/mongo-go-driver)
+
+[教程](https://vkt.sh/go-mongodb-driver-cookbook/)
+
+[简单用法示例](https://www.hwholiday.com/2018/how_use_mongo-go-driver/)
+
+示例：
 
 ```go
-package main
+// GO 要求 struct 中每个字段都大写开头
+// 和 JSON 类似，strcut tag 中的是 DB 中实际存在的字段
+// 如果仅仅是首字母大小写的差别，tag 可以不写，例如 DB 中的 name 可以自动对应到 GO 的 Name。但如果有其他变化，就必须要写。
+type publishedInfo struct {
+	VersionTS   time.Time `bson:"versionTS"`
+	PublishedAt time.Time `bson:"publishedAt"`
+	Spec        string    `bson:"spec"`
+}
 
-import (
-	"fmt"
-	"log"
-
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-)
-
-type Person struct {
-	Name  string
-	Phone string
+type dashboard struct {
+	ID        primitive.ObjectID `bson:"_id"`
+	Name      string             `bson:"name"`
+	DraftSpec string             `bson:"draftSpec"`
+	Published []publishedInfo    `bson:"published"`
 }
 
 func main() {
-	session, err := mgo.Dial("server1.example.com,server2.example.com")
-	if err != nil {
-		panic(err)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://iotviz:iotviz_qianmo_bjyz@bjyz-zhaomuwei.epc.baidu.com:8001/iotviz-local?authSource=iotviz2-prod"))
+	checkError(err)
+
+	collection := client.Database("iotviz-local").Collection("dashboard")
+
+	findOptions := options.Find()
+	findOptions.SetSkip(2)
+	findOptions.SetLimit(2)
+	findOptions.SetSort(bson.M{"_id": -1})
+	findOptions.SetProjection(bson.M{
+		"_id":       1,
+		"name":      1,
+		"draftSpec": 1,
+		"published": 1,
+	})
+
+	// 如果使用 ID 查找，一方面可以使用 collection.FindOne
+	// 另一方面，不能直接用字符串，而是需要构造一个 ObjectID 类型
+	expectedId, _ := primitive.ObjectIDFromHex("5c4961714af86b2a87a51718")
+	cur, err := collection.Find(ctx, bson.M{
+		"_id": expectedId,
+	}, findOptions)
+	checkError(err)
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var result dashboard
+		err := cur.Decode(&result)
+		checkError(err)
+
+		// fmt.Println(result.ID.Hex())
+		fmt.Println(result.Name)
+		// fmt.Println(result.Published[0].PublishedAt)
 	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-
-	c := session.DB("test").C("people")
-	err = c.Insert(&Person{"Ale", "+55 53 8116 9639"},
-		&Person{"Cla", "+55 53 8402 8510"})
-	if err != nil {
-		log.Fatal(err)
+	if err := cur.Err(); err != nil {
+		fmt.Println(err)
 	}
-
-	result := Person{}
-	err = c.Find(bson.M{"name": "Ale"}).One(&result)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Phone:", result.Phone)
 }
 ```
 
