@@ -1,6 +1,6 @@
 # useEffect 和异步任务
 
-React Hooks 是 React 16.8 的新功能，可以在不编写 class 的情况下使用状态等功能，从而使得函数式组件从**无状态的**变化为**有状态的**。如果我们平时使用 typescript 编写 React 的话，也可以从组件的类型中看出端倪：原来叫 React.SFC (Stateless Functional Component)，而现在就叫 React.FC (Functional Component)。
+React Hooks 是 React 16.8 的新功能，可以在不编写 class 的情况下使用状态等功能，从而使得函数式组件从**无状态的**变化为**有状态的**。 React 的类型包 @types/react 中也同步把 React.SFC (Stateless Functional Component) 改为了 React.FC (Functional Component)。
 
 通过这一升级，原先 class 写法的组件也就完全可以被函数式组件替代。虽然是否要把老项目中所有类组件全部改为函数式组件因人而异，但新写的组件还是值得尝试的，因为代码量的确减少了很多，尤其是重复的代码（例如 componentDidMount + componentDidUpdate + componentWillUnmount = useEffect）。
 
