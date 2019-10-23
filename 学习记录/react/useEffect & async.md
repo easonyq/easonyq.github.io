@@ -1,4 +1,4 @@
-# useEffect 和异步任务
+# React Hooks 异步操作踩坑记
 
 React Hooks 是 React 16.8 的新功能，可以在不编写 class 的情况下使用状态等功能，从而使得函数式组件从**无状态的**变化为**有状态的**。 React 的类型包 @types/react 中也同步把 React.SFC (Stateless Functional Component) 改为了 React.FC (Functional Component)。
 

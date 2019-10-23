@@ -42,6 +42,6 @@
   * [知乎链接](https://zhuanlan.zhihu.com/p/56002037)
   * [掘金链接](https://juejin.im/post/5c501d61f265da61290a8ca8)
 
-* [useEffect 和异步任务](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/react/useEffect%20%26%20async.md)
+* [React Hooks 异步操作踩坑记](https://github.com/easonyq/easonyq.github.io/blob/master/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/react/useEffect%20%26%20async.md)
   * [知乎链接](https://zhuanlan.zhihu.com/p/87713171)
   * [掘金链接](https://juejin.im/post/5dad5020f265da5b9603e0ca)
