@@ -11,6 +11,7 @@ nodejs的事件驱动模型一般要注意下面几个点：
 
 事件循环机制是使单线程的 JavaScript 支持高性能非阻塞 I/O 操作的原因。当 Node.js 启动的时候就会初始化一个事件循环，并开始执行 js 主代码，这中间可能会产生一些定时器（schedule timers），异步 I/O API调用，或者process.nextTick调用等等， 然后进入事件循环。
 
+```
    ┌───────────────────────┐
 ┌─>│        timers         │ 这个阶段执行 `setTimeout()` 和 `setInterval()` 中的回调函数
 │  └──────────┬────────────┘
@@ -29,6 +30,8 @@ nodejs的事件驱动模型一般要注意下面几个点：
 │  ┌──────────┴────────────┐
 └──┤    close callbacks    │ `close` 回调函数被调用如：socket.on('close', ...)
    └───────────────────────┘
+
+```
 
 ## timers
 
@@ -89,7 +92,7 @@ setImmediate(() => {
   console.log('setImmediate');
 });
 setTimeout(() => {
-  console.log('setTimeout'); 
+  console.log('setTimeout');
 }, 0)
 
 // 执行结果，nextTick, setTimeout, setImmediate

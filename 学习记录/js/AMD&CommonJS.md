@@ -44,15 +44,36 @@ UMD = 通用模块规范。它兼容了 AMD 和 CommonJS，为的就是创造一
 2. 再判断是否支持 AMD（`define` 是否存在），存在则使用AMD方式加载模块。
 3. 前两个都不存在，则将模块公开到全局（`window` 或 `global`）。
 
-# CMD
+# ES
 
-其实是 seajs 的作者提出的自己的规范，和 AMD 比较接近。依然使用 `define`：
+es2015 提出的模块化编程方式，使用 `import`, `export` 等进行引入和导出。引入导出的单位是方法，变量或者类，而不是文件。因此一个文件可以有多个导出。但只能有一个默认导出。
 
 ```javascript
-define(function (require, exports, module) {
-    // do something
-})
+// a.js
+export var a = 'a';
+export function sayA() {
+    console.log('sayA');
+}
+export default class A {
+    greet() {
+        console.log('This is A');
+    }
+}
+
+// b.js
+import {a, sayA} from './a';
+console.log(a) // a
+sayA() // sayA
+
+// c.js
+import A from './a';
+let a = new A();
+a.greet(); // This is A
 ```
+
+注意 `import` 后面如果跟 `{ xxx }` 并不是对象解构的意思，是获取普通导出的内容。如果不跟大括号，则使用默认导出。一般多用普通导出。
+
+`import` 还有两种写法： 使用 `as` 更换导入内容的命名，以及使用 `* as XXX` 直接导入全部，之后使用 `XXX.yy` 来使用。
 
 # rollup 的 format
 
