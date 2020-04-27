@@ -1,5 +1,5 @@
 <p align='center'>
-  <img width="150" src="http://boscdn.bpc.baidu.com/assets/mip/codelab/shell/mashroom.jpg" title='MIP' alt='MIP'>
+  <img src="https://bce.bdstatic.com/doc/bce-doc/IOTVIZ/mogu_f8b5264.jpg" width=100 height=100/>
 </p>
 
 ----
