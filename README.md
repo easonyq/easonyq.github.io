@@ -1,5 +1,5 @@
-<p align='center'>
-  <img src="https://bce.bdstatic.com/doc/bce-doc/IOTVIZ/mogu_f8b5264.jpg" width=100 height=100/>
+<p align="center">
+  <img src="https://bce.bdstatic.com/doc/bce-doc/IOTVIZ/mogu_f8b5264.jpg" width="300" height="300"/>
 </p>
 
 ----
