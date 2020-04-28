@@ -167,3 +167,36 @@ app.UseStaticFiles(new StaticFileOptions
 1. 创建项目： `dotnet new mvc -o mvc`
 2. 信任 HTTPS 开发证书：`dotnet dev-certs https --trust`
 3. 跨平台的适用于 ASP .NET Core 的 Web 服务器 Kestrel。[详细信息和配置项](https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/servers/kestrel?view=aspnetcore-3.1)。默认的配置文件位于 Properties/launchSettings.json。（例如端口号）
+
+### 控制器
+
+和 webAPI Controller 相比，MVC Controller 继承的父类是 `Controller`。（ webAPI 是 `ControllerBase`，两者都在 Microsoft.AspNetCore.Mvc ）
+
+```cs
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Encodings.Web;
+
+namespace MvcMovie.Controllers
+{
+    public class HelloWorldController : Controller
+    {
+        //
+        // GET: /HelloWorld/
+
+        public string Index()
+        {
+            return "This is my default action...";
+        }
+
+        //
+        // GET: /HelloWorld/Welcome/
+
+        public string Welcome()
+        {
+            return "This is the Welcome action method...";
+        }
+    }
+}
+```
+
+每个 public 方法对应一个路由（不需要使用特性来声明路由）。MVC 的默认路由逻辑是 `/[Controller]/[ActionName]/[Parameters]`。这个默认路由逻辑可以在 Startup 的 Configure 方法中更改。
