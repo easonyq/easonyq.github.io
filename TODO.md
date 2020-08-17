@@ -40,11 +40,15 @@
 * 2020
     * 三国史话
     * 海边的卡夫卡
+    * 张居正大传
+    * 正面管教
 
 待阅读列表
 
 * 火车
 * 大汉兴亡四百年
+* sociaty of minds by Marvin Minsky
+* emotional machine by Marvin Minsky
 
 ------
 
@@ -53,6 +57,14 @@
 * [页面和 SW 互相通讯的方法](http://craig-russell.co.uk/2016/01/29/service-worker-messaging.html#.W-KTZtUzbRY)
 
 * PWA 的实际收益 [https://www.pwastats.com](https://www.pwastats.com)
+
+------
+
+Microsoft
+
+Power Automation - No code platform for common logic (many preset templates)
+Power Virtual Agent - Automatic respond bot (you can set answer rules to it)
+Logic App
 
 ------
 
