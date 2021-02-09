@@ -58,6 +58,10 @@ Blazor 的主要目的是前后端同构，并实现 SPA（首次请求返回所
 2. 无法离线
 3. 对服务器压力大（相当于回到了老式的 web service，在 client 端几乎什么都不做）
 
+如果有多个后端提供服务，需要使用 sticky sessions 来确保同一个 client 在断开连接并重连时每次都连接到相同的后端，因为状态是保存在后端的。推荐使用 Azure SignalR Service，有默认支持。
+
+状态可以被永久存储，这样可以防止一些关键数据的丢失（例如购物车或者多步的表单）。可以选择存入数据库，blob等，也可以放在URL或者browser storage里面。
+
 和 ASP.NET Core MVC 类似，有 Program.cs 和 Startup.cs。
 
 在 Startup.cs 的 `ConfigureServices` 中注意
@@ -87,7 +91,7 @@ app.UseEndpoints(endpoints =>
 
 ## 路由和事件
 
-MainLayout 中 @Body 的内容根据当前路由来决定，这一点在 App.razor 中使用 <RouterView> 来决定。
+MainLayout 中 @Body 的内容根据当前路由来决定，类似于 react-router 中的 <Switch> 和 <Router> 以及 vue-router 中的 <RouterView>。
 每个页面组件的开头会通过使用 `@page "/"` 来声明自己的路由。
 
 页面跳转是通过把事件传递到后端，后端计算后给出新的HTML，并和当前HTML **混合** 而成，因此没有实质跳转，是通过 pushAPI 来更改路由的，并不刷新页面。
@@ -304,7 +308,7 @@ blazor 内置了一些通用组件，例如 <EditForm> 组件支持传入一个 
 
 ```html
 <EditForm Model="@personModel" OnValidSubmit="HandleSubmit">
-    <DataAnnotationsValidator> <!-- 告诉 blazor 需要根据 model 上的 annotation 来验证表单 -->
+    <DataAnnotationsValidator/> <!-- 告诉 blazor 需要根据 model 上的 annotation 来验证表单 -->
     <InputText id="firstName" @bind-Value="personModel.FirstName" />
     <button type="submit">Submit</button>
 </EditForm>
@@ -380,6 +384,8 @@ protected override async Task HooksAsync() {
 
 ### C# 调用 JS 方法
 
+使用场景：使用一些 JS 类库，使用系统方法。
+
 C# 可以调用注册在 window 上的全局方法：
 
 ```cs
@@ -411,6 +417,16 @@ C# 可以调用注册在 window 上的全局方法：
 当Blazor 进行预渲染 (prerendering) 时因为是在后端进行的，此时与浏览器的连接尚未建立，因此是无法调用到 JS 方法的。(同理，任何 JS 相关的东西，比如 document 等，也都没有)
 为了解决这个问题，可以使用生命周期函数 `OnAfterRenderAsync(bool firstRender)`，在这个周期里面的函数可以确保连接已经建立。（当然在 click 事件里写也能确保）
 在钩子最后调用 `StateHasChanged` 可以通知 Blazor 获取最新状态并更新 DOM。这些代码最好在 `firstRender=true`时调用，否则会导致死循环。
+
+### JS 调用 C# 方法
+
+使用场景：
+
+JS 可以调用在 razor component 中 `@codes` 段落中的方法。
+
+**静态**方法被标记为 `[JSInvokable]` 时，可以通过 `DotNet.invokeMethodAsync('App Assembly Name', 'Function Name', arguments...).then(returnValue => {...})` 在 JS 中调用。
+
+其他实例方法的调用参见 https://docs.microsoft.com/en-us/aspnet/core/blazor/call-dotnet-from-javascript?view=aspnetcore-5.0
 
 ## 开发
 
